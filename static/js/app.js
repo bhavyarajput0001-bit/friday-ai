@@ -320,6 +320,20 @@
         FridaySocket.on('conversation:history', (messages) => {
             if (Array.isArray(messages) && messages.length > 0) Panels.loadConversationHistory(messages);
         });
+
+        FridaySocket.on('config:state', (cfg) => {
+            if (!cfg) return;
+            const voiceSelect = document.getElementById('voiceSelect');
+            if (voiceSelect && cfg.voice_index) {
+                if (voiceSelect.querySelector('option[value="' + cfg.voice_index + '"]')) {
+                    voiceSelect.value = cfg.voice_index;
+                }
+            }
+            const speakOn = document.getElementById('speakOn');
+            if (speakOn && cfg.speak_on != null) speakOn.checked = !!cfg.speak_on;
+            const wakeWord = document.getElementById('wakeWord');
+            if (wakeWord && cfg.wake_word) wakeWord.value = cfg.wake_word;
+        });
     }
 
     function formatUptime(secs) {

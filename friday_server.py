@@ -573,7 +573,9 @@ def api_scheduler_toggle():
 # ══════════════════════════════════════════════════════════════════════════════
 #  VOICES / TTS
 # ══════════════════════════════════════════════════════════════════════════════
-VOICE_MAP = {"siri": "Samantha", "jarvis": "Alex", "gentleman": "Tom"}
+VOICE_MAP = {"siri": "Samantha", "jarvis": "Alex", "gentleman": "Tom", "hermes": "hermes"}
+HERMES_VENV = Path.home() / ".hermes" / "hermes-agent" / "venv" / "bin" / "python"
+HERMES_VOICE = "en-US-AriaNeural"
 
 
 def tts(text):
@@ -581,9 +583,30 @@ def tts(text):
         return
     voice = VOICE_MAP.get(cfg.get("voice_index", "siri"), "Samantha")
     try:
-        subprocess.Popen(["say", "-v", voice, text])
+        if voice == "hermes":
+            _tts_hermes(text)
+        else:
+            subprocess.Popen(["say", "-v", voice, text])
     except Exception:
         pass
+
+
+def _tts_hermes(text):
+    """Speak with the Hermes agent's built-in voice (edge-tts en-US-AriaNeural)."""
+    if not HERMES_VENV.exists():
+        subprocess.Popen(["say", "-v", "Samantha", text])
+        return
+    safe = text.replace("\\", "\\\\").replace("'", "\\'").replace('"', '\\"')
+    code = (
+        "import asyncio, edge_tts, tempfile, subprocess\n"
+        "async def main():\n"
+        "    tts = edge_tts.Communicate('" + safe + "', voice='" + HERMES_VOICE + "')\n"
+        "    p = tempfile.mktemp(suffix='.mp3')\n"
+        "    await tts.save(p)\n"
+        "    subprocess.Popen(['afplay', p])\n"
+        "asyncio.run(main())\n"
+    )
+    subprocess.Popen([str(HERMES_VENV), "-c", code])
 
 
 def push_message(text, sender="friday", emotion=None):
@@ -1339,6 +1362,10 @@ def process_command(cmd, audio_obj=None):
         cfg["voice_index"] = "gentleman"
         save_memory()
         push_message("Voice set to Gentleman")
+    elif "voice hermes" in normalized or "voice four" in normalized or "hermes voice" in normalized:
+        cfg["voice_index"] = "hermes"
+        save_memory()
+        push_message("Voice set to Hermes")
     elif "speak on" in normalized or "friday speak" in normalized:
         cfg["speak_on"] = True
         save_memory()
