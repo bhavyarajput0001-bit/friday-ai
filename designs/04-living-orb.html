@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FRIDAY — Living Orb</title>
+<style>
+/* ═══════════════════════════════════════════════════════════════════════
+   DESIGN 04 · ORGANIC LIVING ORB
+   Not a machine — a presence. A soft-bodied creature that breathes, blinks,
+   watches your cursor, dozes off, and perks up when you speak.
+   Warm twilight palette, no sharp corners, no chrome.
+   ═══════════════════════════════════════════════════════════════════════ */
+:root{
+  --bg:#17101e; --bg2:#1f1326;
+  --plum:#a06bff; --peach:#ff9e7d; --cream:#ffe9dc; --moss:#9fd8b0;
+  --text:#f5e9f2; --dim:#b49aab; --mute:#6d5470;
+  --font:'Nunito','Avenir Next','Segoe UI',sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%}
+body{
+  background:radial-gradient(1200px 900px at 50% 30%,var(--bg2) 0%,var(--bg) 60%);
+  font-family:var(--font);color:var(--text);overflow:hidden;
+}
+/* ambient floating motes */
+.mote{position:fixed;border-radius:50%;background:var(--peach);opacity:.15;filter:blur(6px);pointer-events:none;
+  animation:floaty 14s ease-in-out infinite;z-index:0}
+@keyframes floaty{0%,100%{transform:translate(0,0)}50%{transform:translate(30px,-40px)}}
+
+.shell{position:relative;z-index:5;height:100vh;max-width:760px;margin:0 auto;
+  display:flex;flex-direction:column;padding:30px 26px}
+
+/* ── header ── */
+.top{display:flex;justify-content:space-between;align-items:center}
+.top .name{font-size:19px;font-weight:800;letter-spacing:.4px}
+.top .name i{font-style:normal;color:var(--plum)}
+.top .state{font-size:13px;color:var(--dim);display:flex;align-items:center;gap:8px}
+.top .state i{width:8px;height:8px;border-radius:50%;background:var(--moss);box-shadow:0 0 12px var(--moss);animation:pulse 3s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:.4;transform:scale(.85)}50%{opacity:1;transform:scale(1.15)}}
+
+/* ── creature stage ── */
+.stage{flex:1;display:grid;place-items:center;position:relative;min-height:320px}
+.ground{position:absolute;left:10%;right:10%;bottom:14%;height:40px;
+  background:radial-gradient(ellipse at center,rgba(160,107,255,.16),transparent 70%);filter:blur(6px)}
+
+/* the creature */
+.creature{width:260px;height:230px;position:relative;cursor:pointer;animation:settle 1.2s ease}
+@keyframes settle{from{transform:scale(.6) translateY(30px);opacity:0}}
+.body{position:absolute;left:0;right:0;top:14%;bottom:6%;border-radius:52% 48% 55% 45% / 60% 58% 42% 40%;
+  background:radial-gradient(circle at 34% 26%,#cba0ff 0%,#8f5be0 45%,#5a2f9e 78%);
+  box-shadow:0 26px 60px rgba(60,20,90,.55),0 0 80px rgba(160,107,255,.28) inset,
+             inset -22px -18px 40px rgba(40,10,70,.5);
+  animation:breathe 5.2s ease-in-out infinite}
+@keyframes breathe{
+  0%,100%{border-radius:52% 48% 55% 45% / 60% 58% 42% 40%;transform:scale(1)}
+  33%{border-radius:48% 52% 45% 55% / 55% 55% 45% 45%;transform:scale(1.035,.97)}
+  66%{border-radius:55% 45% 50% 50% / 50% 52% 48% 50%;transform:scale(.98,1.03)}
+}
+.body::after{content:"";position:absolute;inset:8%;border-radius:inherit;
+  background:radial-gradient(circle at 36% 30%,rgba(255,255,255,.22),transparent 42%);opacity:.8}
+
+/* eyes */
+.eye{position:absolute;top:38%;width:34px;height:44px;z-index:2}
+.eye.l{left:24%}.eye.r{right:24%}
+.eye .lid{position:absolute;inset:0;border-radius:50% 50% 45% 45%;
+  background:radial-gradient(circle at 40% 35%,#ffd9c9 0%,#ffb98f 40%,#e89a7c 75%);
+  box-shadow:0 4px 14px rgba(60,20,60,.5),inset 0 -6px 10px rgba(180,90,60,.5);
+  animation:blink 6.5s infinite}
+@keyframes blink{0%,96%,100%{transform:scaleY(1)}97%{transform:scaleY(.06)}}
+.eye .pupil{position:absolute;left:50%;top:50%;width:16px;height:20px;margin:-10px 0 0 -8px;
+  border-radius:50%;background:#24122e;box-shadow:inset 0 0 4px #000}
+.eye .pupil::after{content:"";position:absolute;left:3px;top:3px;width:6px;height:6px;border-radius:50%;
+  background:rgba(255,255,255,.85)}
+
+/* mouth — changes expression */
+.mouth{position:absolute;top:60%;left:50%;transform:translateX(-50%);width:56px;height:22px;z-index:2;
+  border-bottom:4px solid #4a1f3d;border-radius:0 0 40px 40px;transition:.5s}
+.creature.happy .mouth{border-bottom-color:transparent;border-top:4px solid #4a1f3d;border-radius:40px 40px 0 0;transform:translateX(-50%) translateY(-6px)}
+.creature.doze .mouth{border-bottom:4px dotted #4a1f3d;width:30px}
+
+/* cheeks */
+.cheek{position:absolute;top:52%;width:30px;height:14px;border-radius:50%;background:rgba(255,150,120,.4);filter:blur(3px)}
+.cheek.l{left:10%}.cheek.r{right:10%}
+
+/* thought bubble */
+.bubble{position:absolute;top:6%;right:2%;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);
+  border-radius:18px;padding:10px 14px;font-size:13px;color:var(--cream);opacity:0;transition:.5s;backdrop-filter:blur(8px);max-width:200px}
+.bubble.show{opacity:1}
+
+/* ── status chips ── */
+.chips{display:flex;justify-content:center;gap:12px;padding:4px 0 18px}
+.chip{font-size:12px;color:var(--dim);padding:9px 18px;border-radius:999px;background:rgba(255,255,255,.05);
+  border:1px solid rgba(255,255,255,.1);backdrop-filter:blur(8px);transition:.25s}
+.chip b{color:var(--peach);font-weight:700}
+
+/* ── conversation ── */
+.chat{flex:1;display:flex;flex-direction:column;background:rgba(255,255,255,.04);
+  border:1px solid rgba(255,255,255,.08);border-radius:24px;backdrop-filter:blur(14px);
+  overflow:hidden;min-height:200px}
+.chat-hd{padding:12px 20px;border-bottom:1px solid rgba(255,255,255,.08);font-size:12px;color:var(--dim);
+  display:flex;justify-content:space-between}
+.chat-hd b{color:var(--text);font-weight:700}
+.msgs{flex:1;overflow-y:auto;padding:18px 20px;display:flex;flex-direction:column;gap:12px}
+.msgs::-webkit-scrollbar{width:6px}.msgs::-webkit-scrollbar-thumb{background:rgba(255,255,255,.12);border-radius:3px}
+.msg{max-width:80%;padding:11px 16px;border-radius:18px;font-size:14px;line-height:1.5;animation:rise .35s ease}
+@keyframes rise{from{opacity:0;transform:translateY(8px)}}
+.msg.f{background:rgba(160,107,255,.14);border:1px solid rgba(160,107,255,.2);border-bottom-left-radius:6px;align-self:flex-start}
+.msg.u{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);border-bottom-right-radius:6px;align-self:flex-end}
+.msg small{display:block;font-size:10px;color:var(--mute);margin-top:5px}
+.say{display:flex;gap:12px;padding:14px 20px;border-top:1px solid rgba(255,255,255,.08)}
+.say input{flex:1;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:999px;
+  padding:12px 20px;color:var(--text);font-size:14px;font-family:var(--font);outline:none;transition:.25s}
+.say input:focus{border-color:var(--plum);box-shadow:0 0 0 4px rgba(160,107,255,.18)}
+.say button{width:46px;height:46px;border-radius:50%;border:none;cursor:pointer;flex-shrink:0;
+  background:linear-gradient(135deg,var(--plum),var(--peach));color:#2a1026;font-size:17px;transition:.25s}
+.say button:hover{transform:scale(1.08)}
+.typing{display:flex;gap:5px;padding:10px 6px}
+.typing i{width:7px;height:7px;border-radius:50%;background:var(--peach);animation:bob 1s infinite}
+.typing i:nth-child(2){animation-delay:.15s}.typing i:nth-child(3){animation-delay:.3s}
+@keyframes bob{0%,100%{transform:translateY(0);opacity:.35}50%{transform:translateY(-5px);opacity:1}}
+</style>
+</head>
+<body>
+<div class="mote" style="width:220px;height:220px;top:8%;left:8%"></div>
+<div class="mote" style="width:150px;height:150px;bottom:10%;right:6%"></div>
+<div class="mote" style="width:90px;height:90px;top:50%;left:70%"></div>
+
+<div class="shell">
+  <div class="top">
+    <div class="name">friday <i>◒</i></div>
+    <div class="state"><i></i><span id="moodLabel">awake & curious</span></div>
+  </div>
+
+  <div class="stage">
+    <div class="ground"></div>
+    <div class="bubble" id="bubble">👋</div>
+    <div class="creature" id="creature">
+      <div class="body"></div>
+      <div class="cheek l"></div><div class="cheek r"></div>
+      <div class="eye l"><div class="lid"></div><div class="pupil" id="pupilL"></div></div>
+      <div class="eye r"><div class="lid"></div><div class="pupil" id="pupilR"></div></div>
+      <div class="mouth"></div>
+    </div>
+  </div>
+
+  <div class="chips">
+    <div class="chip">heartbeat <b id="hb">72</b> bpm</div>
+    <div class="chip">mood <b id="mood">content</b></div>
+    <div class="chip">tasks <b id="taskC">2</b> open</div>
+  </div>
+
+  <div class="chat">
+    <div class="chat-hd"><span>talk to friday</span><b>she's listening</b></div>
+    <div class="msgs" id="msgs"></div>
+    <div class="say">
+      <input id="cmd" placeholder="say something…" autocomplete="off">
+      <button id="send">➤</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ── creature reactions ── */
+const creature=document.getElementById('creature');
+const moods={awake:'awake & curious',happy:'she liked that',doze:'dozing off…',thinking:'thinking…'};
+function setMood(k,bubbleTxt){
+  const c=creature;
+  c.classList.remove('happy','doze');
+  if(k==='happy')c.classList.add('happy');
+  if(k==='doze')c.classList.add('doze');
+  document.getElementById('moodLabel').textContent=moods[k];
+  if(bubbleTxt){const b=document.getElementById('bubble');b.textContent=bubbleTxt;b.classList.add('show');
+    setTimeout(()=>b.classList.remove('show'),2600);}
+  if(k==='thinking')document.getElementById('mood').textContent='thinking';
+  else document.getElementById('mood').textContent=k;
+}
+/* pupil follows cursor */
+const pupL=document.getElementById('pupilL'),pupR=document.getElementById('pupilR');
+const stage=document.querySelector('.stage');
+stage.addEventListener('mousemove',e=>{
+  const r=stage.getBoundingClientRect();
+  let dx=((e.clientX-r.left)/r.width-.5)*2,dy=((e.clientY-r.top)/r.height-.5)*2;
+  dx=Math.max(-1,Math.min(1,dx));dy=Math.max(-1,Math.min(1,dy));
+  pupL.style.transform=`translate(${dx*6}px,${dy*7}px)`;
+  pupR.style.transform=`translate(${dx*6}px,${dy*7}px)`;
+});
+/* creature idle wander — occasional blinks & moods */
+let idleTimer;
+function idle(){
+  const r=Math.random();
+  if(r<.25){setMood('happy','*nuzzles closer*');}
+  else if(r<.45){setMood('awake');}
+  idleTimer=setTimeout(idle,6000+Math.random()*7000);
+}
+idle();
+
+/* ── chat ── */
+const msgs=document.getElementById('msgs');
+function push(s,t,tag){const m=document.createElement('div');m.className='msg '+s;
+  m.innerHTML=t+(tag?`<small>${tag}</small>`:'');msgs.appendChild(m);msgs.scrollTop=msgs.scrollHeight;}
+push('f','Hi. I’m right here.','friday · a moment ago');
+const RESP=[
+ 'That’s nice. Tell me more?',
+ 'I’d like that. What are we doing today?',
+ 'Mmm. I’ve tucked that away in memory so it stays.',
+ 'Want me to take care of anything while we talk?',
+ 'I was getting a little sleepy, but you woke me up. That’s okay.'
+];
+const go=()=>{const i=document.getElementById('cmd'),t=i.value.trim();if(!t)return;
+  push('u',t);i.value='';
+  setMood('thinking','*perks up*');setMood('thinking');
+  const ty=document.createElement('div');ty.className='typing';ty.innerHTML='<i></i><i></i><i></i>';msgs.appendChild(ty);msgs.scrollTop=msgs.scrollHeight;
+  setTimeout(()=>{ty.remove();
+    const r=Math.random();
+    if(r<.5)setMood('happy','*smiles*');
+    else setMood('awake');
+    push('f',RESP[Math.floor(Math.random()*RESP.length)],'friday · just now');
+  },1100+Math.random()*900);};
+document.getElementById('send').addEventListener('click',go);
+document.getElementById('cmd').addEventListener('keydown',e=>{if(e.key==='Enter')go();});
+document.getElementById('cmd').addEventListener('focus',()=>{setMood('awake','*wakes up*');});
+document.getElementById('cmd').addEventListener('blur',()=>{idleTimer=setTimeout(idle,6000);});
+
+/* ── heartbeat & tasks sim ── */
+setInterval(()=>{document.getElementById('hb').textContent=Math.round(66+Math.random()*14);},1400);
+setTimeout(()=>setMood('doze','*zzz…*'),22000);
+setTimeout(()=>{setMood('awake','*yawns* oh, hi');},30000);
+</script>
+</body>
+</html>

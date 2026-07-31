@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FRIDAY — Voice-First Radial</title>
+<style>
+/* ═══════════════════════════════════════════════════════════════════════
+   DESIGN 05 · RADIAL VOICE-FIRST ORB
+   Built for the ear. One glowing orb at the center, concentric acoustic
+   rings, live waveform when you talk, transcription ticker. Push-to-talk.
+   Deep charcoal + electric blue, high contrast, minimal chrome.
+   ═══════════════════════════════════════════════════════════════════════ */
+:root{
+  --bg:#07090f; --bg2:#0b0f18;
+  --blue:#4da3ff; --blue2:#7dd3fc; --ice:#dff3ff; --lime:#b8f36b;
+  --text:#e8f1ff; --dim:#7d8db0; --mute:#3c4763;
+  --mono:'Space Grotesk','Avenir Next','Segoe UI',sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%}
+body{background:radial-gradient(1000px 700px at 50% 38%,var(--bg2) 0%,var(--bg) 70%);
+  font-family:var(--mono);color:var(--text);overflow:hidden}
+
+/* ── stage ── */
+.stage{height:100vh;display:grid;grid-template-rows:1fr auto;position:relative}
+
+.orbit-area{position:relative;display:grid;place-items:center;min-height:0}
+
+/* ── concentric rings (pure CSS ambience) ── */
+.rings{position:absolute;width:min(74vmin,560px);aspect-ratio:1;pointer-events:none}
+.ring{position:absolute;border-radius:50%;border:1px solid rgba(77,163,255,.14)}
+.ring.r1{inset:0}
+.ring.r2{inset:9%}
+.ring.r3{inset:18%}
+.ring.r4{inset:27%}
+.ring.r5{inset:36%}
+.ring.r1::after,.ring.r2::after,.ring.r3::after{content:"";position:absolute;inset:0;border-radius:50%;
+  border-top:2px solid var(--blue);filter:drop-shadow(0 0 6px var(--blue));opacity:.6}
+.ring.r1::after{animation:spin 26s linear infinite}
+.ring.r2::after{animation:spin 19s linear infinite reverse}
+.ring.r3::after{animation:spin 14s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* tick marks on rings */
+.ring .tick{position:absolute;width:2px;height:6px;background:rgba(77,163,255,.35);
+  left:50%;top:0;transform-origin:0 50%}
+.ring.r1 .tick{top:-2px}
+.ring.r4 .tick{height:4px;background:rgba(125,211,252,.25)}
+
+/* ── waveform canvas ── */
+#wave{position:absolute;inset:0;width:100%;height:100%;opacity:.85;pointer-events:none}
+
+/* ── push-to-talk core ── */
+.core{position:relative;z-index:5;display:grid;place-items:center}
+.pulse{position:absolute;width:150px;height:150px;border-radius:50%;
+  background:radial-gradient(circle,rgba(77,163,255,.25),transparent 65%);
+  animation:pulse 3.2s ease-out infinite;pointer-events:none}
+@keyframes pulse{0%{transform:scale(.8);opacity:.8}100%{transform:scale(2.4);opacity:0}}
+.ptt{width:140px;height:140px;border-radius:50%;border:2px solid var(--blue);cursor:pointer;
+  background:radial-gradient(circle at 35% 30%,#1c2b4a,#0a1224 70%);
+  display:grid;place-items:center;position:relative;transition:.25s;outline:none;
+  box-shadow:0 0 40px rgba(77,163,255,.25),inset 0 0 30px rgba(77,163,255,.15)}
+.ptt:hover{transform:scale(1.04);box-shadow:0 0 60px rgba(77,163,255,.4)}
+.ptt:active,.ptt.listening{transform:scale(.97);border-color:var(--lime);
+  box-shadow:0 0 70px rgba(184,243,107,.5),inset 0 0 40px rgba(184,243,107,.3)}
+.ptt .icon{font-size:34px;color:var(--ice);transition:.2s}
+.ptt.listening .icon{color:var(--lime);animation:talkPulse 1s infinite}
+@keyframes talkPulse{0%,100%{transform:scale(1)}50%{transform:scale(.9)}}
+
+/* ── status text under orb ── */
+.status{position:absolute;bottom:14%;left:0;right:0;text-align:center;z-index:5}
+.status .state{font-size:13px;letter-spacing:3px;color:var(--dim);text-transform:uppercase}
+.status .state b{color:var(--blue2);font-weight:500}
+.status .micro{font-size:11px;color:var(--mute);margin-top:6px}
+
+/* ── transcription ticker ── */
+.ticker{position:absolute;bottom:6%;left:50%;transform:translateX(-50%);width:min(80%,560px);
+  text-align:center;font-size:15px;color:var(--ice);min-height:24px;z-index:5;
+  font-family:var(--mono);text-shadow:0 0 14px rgba(125,211,252,.4)}
+
+/* ── bottom dock ── */
+.dock{background:rgba(10,15,26,.7);backdrop-filter:blur(20px);border-top:1px solid rgba(77,163,255,.15);
+  padding:16px 24px;display:grid;grid-template-columns:1fr auto 1fr;gap:14px;align-items:center}
+.dock .transcript{font-size:13px;color:var(--dim);overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.dock .transcript b{color:var(--text);font-weight:500}
+.dock .clock{font-size:13px;color:var(--dim);text-align:right;font-family:var(--mono)}
+.dock .clock b{color:var(--blue2);font-weight:500}
+.modes{display:flex;gap:8px}
+.mode{width:10px;height:10px;border-radius:50%;border:1px solid var(--mute);cursor:pointer;transition:.25s}
+.mode.on{background:var(--blue);border-color:var(--blue);box-shadow:0 0 10px var(--blue)}
+.mode:hover{transform:scale(1.3)}
+</style>
+</head>
+<body>
+<div class="stage">
+  <div class="orbit-area">
+    <div class="rings" id="rings">
+      <div class="ring r1"></div>
+      <div class="ring r2"></div>
+      <div class="ring r3"></div>
+      <div class="ring r4"></div>
+      <div class="ring r5"></div>
+    </div>
+    <canvas id="wave"></canvas>
+
+    <div class="core">
+      <div class="pulse"></div>
+      <button class="ptt" id="ptt" title="Hold to talk">
+        <span class="icon">⌾</span>
+      </button>
+    </div>
+
+    <div class="status">
+      <div class="state" id="state"><b>IDLE</b> · tap orb to speak</div>
+      <div class="micro">MIC · built-in input · voice-first mode</div>
+    </div>
+
+    <div class="ticker" id="ticker">“ ”</div>
+  </div>
+
+  <div class="dock">
+    <div class="transcript">FRIDAY <b>said</b>: I’m all ears — go ahead when you’re ready.</div>
+    <div class="modes">
+      <div class="mode on" title="voice"></div>
+      <div class="mode" title="focus"></div>
+      <div class="mode" title="quiet"></div>
+    </div>
+    <div class="clock">SESSION <b id="sess">01</b> · <b id="clock">00:00</b></div>
+  </div>
+</div>
+
+<script>
+/* ── state machine: idle → listening → thinking → speaking ── */
+let state='idle';
+const ptt=document.getElementById('ptt');
+const stateEl=document.getElementById('state');
+const ticker=document.getElementById('ticker');
+const wave=document.getElementById('wave'),x=wave.getContext('2d');
+let holding=false,waveAmp=0;
+
+function setState(s){
+  state=s;
+  const map={idle:'<b>IDLE</b> · tap orb to speak',listening:'<b>LISTENING</b> · speak now',
+    thinking:'<b>THINKING</b> …',speaking:'<b>FRIDAY</b> is speaking'};
+  stateEl.innerHTML=map[s];
+  ptt.classList.toggle('listening',s==='listening');
+  const ico=ptt.querySelector('.icon');ico.textContent=s==='listening'?'●':'⌾';
+}
+
+/* push to talk */
+ptt.addEventListener('mousedown',()=>{holding=true;setState('listening');
+  waveAmp=0;fakeListening();});
+window.addEventListener('mouseup',()=>{
+  if(!holding)return;holding=false;
+  setState('thinking');
+  setTimeout(()=>{
+    const LINES=[
+      '“Got it. I’ve scheduled that for tomorrow at 10.”',
+      '“Sure — I found the file you mentioned and opened it.”',
+      '“The meeting’s at 2. Want a reminder?”',
+      '“All quiet. Anything else on your mind?”'
+    ];
+    ticker.textContent=LINES[Math.floor(Math.random()*LINES.length)];
+    setState('speaking');waveAmp=.7;
+    setTimeout(()=>{setState('idle');ticker.textContent='“ ”';},2600);
+  },1300);
+});
+
+/* simulated live waveform */
+let lv=0;
+function fakeListening(){
+  if(!holding)return;
+  lv=0;
+  const buf=[];for(let i=0;i<32;i++)buf.push(0);
+  (function sample(){
+    if(!holding)return;
+    buf.shift();buf.push(.5+Math.random()*.5);
+    // average to waveAmp
+    let sum=0;buf.forEach(v=>sum+=v);waveAmp=sum/buf.length*.9;
+    setTimeout(sample,90);
+  })();
+  fakeTranscribe();
+}
+const PHRASES=['hey friday','open calendar','play some','low fi','add task','what time is it'];
+function fakeTranscribe(){if(!holding)return;
+  ticker.textContent='“'+PHRASES[Math.floor(Math.random()*PHRASES.length)]+' …”';
+  setTimeout(fakeTranscribe,800);}
+
+/* wave renderer */
+function rz(){wave.width=wave.clientWidth*devicePixelRatio;wave.height=wave.clientHeight*devicePixelRatio;
+  wave.style.width=wave.clientWidth+'px';wave.style.height=wave.clientHeight+'px';
+  x.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);}
+window.addEventListener('resize',rz);rz();
+const TAU=6.283;
+function render(t){
+  x.clearRect(0,0,wave.clientWidth,wave.clientHeight);
+  const w=wave.clientWidth,h=wave.clientHeight,CX=w/2,CY=h/2;
+  const R=Math.min(w,h)*0.42;
+  const amp=state==='listening'?waveAmp:(state==='speaking'?Math.abs(Math.sin(t*.004))*.5+.2:(Math.sin(t*.002)+1)*.06);
+  // waveform around circle
+  x.lineWidth=2;
+  for(let ringI=0;ringI<3;ringI++){
+    const base=R+ringI*14;
+    x.beginPath();
+    const steps=90;
+    for(let i=0;i<=steps;i++){
+      const a=i/steps*TAU;
+      const n=Math.sin(a*6+t*.008+ringI)*.5+Math.sin(a*13-t*.011)*.3;
+      const rr=base+n*amp*30;
+      const px=CX+Math.cos(a)*rr,py=CY+Math.sin(a)*rr;
+      if(i===0)x.moveTo(px,py);else x.lineTo(px,py);
+    }
+    x.strokeStyle=ringI===1?`rgba(125,211,252,${.35+amp*.4})`:`rgba(77,163,255,${.25+amp*.3})`;
+    x.shadowColor='#4da3ff';x.shadowBlur=8*amp;x.stroke();
+  }
+  x.shadowBlur=0;
+  // rms meter ring
+  x.beginPath();x.arc(CX,CY,R*1.16,0,Math.max(.05,amp*2));x.strokeStyle='rgba(184,243,107,.5)';x.lineWidth=2;x.stroke();
+  requestAnimationFrame(render);
+}
+requestAnimationFrame(render);
+
+/* ── clock & session ── */
+setInterval(()=>{document.getElementById('clock').textContent=new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',hour12:false});},1000);
+
+/* ── mode dots ── */
+document.querySelectorAll('.mode').forEach(m=>m.addEventListener('click',()=>{
+  document.querySelectorAll('.mode').forEach(o=>o.classList.remove('on'));m.classList.add('on');}));
+</script>
+</body>
+</html>

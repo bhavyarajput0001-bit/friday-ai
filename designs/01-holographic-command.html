@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FRIDAY — Holographic Command Center</title>
+<style>
+/* ═══════════════════════════════════════════════════════════════════════
+   DESIGN 01 · HOLOGRAPHIC COMMAND CENTER
+   Iron-Man JARVIS style: dark bay, cyan holo, rotating hex core, corner
+   readouts, scanlines, ambient particles. Everything is alive & reactive.
+   ═══════════════════════════════════════════════════════════════════════ */
+:root{
+  --bg:#02040a; --bay:#050a16; --panel:rgba(6,16,32,.72);
+  --line:rgba(0,220,255,.22); --line2:rgba(0,220,255,.08);
+  --cyan:#00dcff; --cyan-dim:rgba(0,220,255,.18);
+  --gold:#ffcf5c; --green:#4dffc0; --red:#ff4d6d; --amber:#ffb020;
+  --text:#cfe9ff; --dim:#5f86ad; --mute:#2f4a6b;
+  --mono:'Share Tech Mono','SF Mono',monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;overflow:hidden}
+body{
+  background:radial-gradient(1200px 800px at 50% 40%,#071a30 0%,var(--bg) 60%);
+  color:var(--text);font-family:'Rajdhani','Segoe UI',sans-serif;
+  user-select:none;
+}
+/* ── ambient grid floor ── */
+body::before{
+  content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:
+    linear-gradient(rgba(0,220,255,.05) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(0,220,255,.05) 1px,transparent 1px);
+  background-size:44px 44px;
+  transform:perspective(400px) rotateX(55deg) scale(1.6);
+  transform-origin:center bottom;
+  animation:gridDrift 22s linear infinite;
+}
+@keyframes gridDrift{from{background-position:0 0}to{background-position:0 44px}}
+/* ── scanline CRT overlay ── */
+body::after{
+  content:"";position:fixed;inset:0;z-index:999;pointer-events:none;opacity:.5;
+  background:repeating-linear-gradient(0deg,transparent 0 2px,rgba(0,0,0,.14) 2px 4px);
+  mix-blend-mode:overlay;
+}
+/* ── moving scan band ── */
+.scanband{position:fixed;left:0;right:0;height:120px;z-index:998;pointer-events:none;
+  background:linear-gradient(180deg,transparent,rgba(0,220,255,.05),transparent);
+  animation:scanmove 7s linear infinite;}
+@keyframes scanmove{0%{top:-20%}100%{top:120%}}
+
+/* ── SHELL ── */
+.shell{position:relative;z-index:5;height:100vh;display:flex;flex-direction:column;padding:18px 22px;}
+
+/* ── TOP BAR ── */
+.topbar{display:flex;align-items:center;justify-content:space-between;
+  border:1px solid var(--line);background:var(--panel);backdrop-filter:blur(10px);
+  padding:10px 18px;clip-path:polygon(0 0,100% 0,calc(100% - 16px) 100%,0 100%);
+  box-shadow:0 0 30px rgba(0,220,255,.08) inset;}
+.brand{display:flex;align-items:center;gap:12px}
+.logo{width:34px;height:34px;border:1px solid var(--cyan);border-radius:50%;position:relative;
+  display:grid;place-items:center;animation:logoPulse 3s ease-in-out infinite}
+.logo::before,.logo::after{content:"";position:absolute;inset:-6px;border:1px dashed rgba(0,220,255,.4);border-radius:50%;animation:spin 14s linear infinite}
+.logo::after{inset:-12px;border-style:solid;border-color:transparent;border-top-color:var(--gold);opacity:.7;animation-duration:8s}
+.logo b{color:var(--cyan);font-size:17px}
+@keyframes logoPulse{0%,100%{box-shadow:0 0 12px rgba(0,220,255,.3)}50%{box-shadow:0 0 26px rgba(0,220,255,.7)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+.brand h1{font-family:'Orbitron',monospace;font-size:18px;letter-spacing:5px;color:#eaffff;text-shadow:0 0 18px rgba(0,220,255,.6)}
+.brand small{display:block;font-family:var(--mono);color:var(--dim);letter-spacing:3px;font-size:9px}
+.statusline{display:flex;gap:26px;font-family:var(--mono);font-size:11px;color:var(--dim)}
+.statusline span b{color:var(--green);font-weight:400}
+.statusline .blink{animation:blink 1.2s steps(2) infinite}
+@keyframes blink{50%{opacity:.2}}
+
+/* ── MAIN 3 COLUMN ── */
+.main{flex:1;display:grid;grid-template-columns:300px 1fr 360px;gap:16px;margin-top:16px;min-height:0}
+
+/* ── PANEL SKELETON ── */
+.panel{background:var(--panel);border:1px solid var(--line);backdrop-filter:blur(12px);
+  position:relative;display:flex;flex-direction:column;min-height:0;overflow:hidden}
+.panel::before{content:"";position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--cyan),transparent);animation:lineGlow 4s ease-in-out infinite}
+@keyframes lineGlow{0%,100%{opacity:.25}50%{opacity:1}}
+.panel-hd{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;
+  border-bottom:1px solid var(--line2);font-family:var(--mono);font-size:11px;letter-spacing:2px;color:var(--cyan)}
+.panel-hd::after{content:"●";font-size:8px;color:var(--green);animation:blink 2s infinite}
+.panel-bd{padding:14px;overflow-y:auto;flex:1}
+.panel-bd::-webkit-scrollbar{width:5px}.panel-bd::-webkit-scrollbar-thumb{background:var(--line);border-radius:3px}
+
+/* ── telemetry rows ── */
+.gauge{margin-bottom:16px}
+.gauge-top{display:flex;justify-content:space-between;font-family:var(--mono);font-size:11px;color:var(--dim);margin-bottom:6px}
+.gauge-top span:last-child{color:var(--cyan)}
+.gauge-bar{height:6px;background:rgba(0,220,255,.08);position:relative;overflow:hidden}
+.gauge-fill{height:100%;background:linear-gradient(90deg,var(--cyan),var(--green));width:0%;
+  box-shadow:0 0 12px rgba(0,220,255,.8);transition:width .8s cubic-bezier(.2,.8,.2,1)}
+.gauge-bar::after{content:"";position:absolute;top:0;bottom:0;width:30px;background:rgba(255,255,255,.25);
+  filter:blur(4px);animation:sweep 2.4s linear infinite}
+@keyframes sweep{0%{left:-10%}100%{left:110%}}
+
+/* ── device list ── */
+.dev{display:flex;align-items:center;gap:10px;padding:8px 10px;border:1px solid var(--line2);
+  margin-bottom:8px;font-size:13px;border-radius:3px;transition:.2s}
+.dev:hover{border-color:var(--cyan)}
+.dev .dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.dev .on{background:var(--green);box-shadow:0 0 8px var(--green);animation:blink 2.4s infinite}
+.dev .off{background:var(--mute)}
+.dev .nm{flex:1}
+.dev .st{font-family:var(--mono);font-size:10px;color:var(--dim)}
+
+/* ── RIGHT: conversation ── */
+.chat{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:10px;padding:6px 2px}
+.chat::-webkit-scrollbar{width:5px}.chat::-webkit-scrollbar-thumb{background:var(--line)}
+.msg{max-width:88%;padding:10px 14px;border-radius:3px;font-size:14px;line-height:1.5;animation:msgIn .3s ease}
+@keyframes msgIn{from{opacity:0;transform:translateY(8px)}to{opacity:1}}
+.msg.f{background:rgba(0,220,255,.07);border:1px solid var(--line);border-left:3px solid var(--cyan);align-self:flex-start}
+.msg.u{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);align-self:flex-end}
+.msg small{display:block;font-family:var(--mono);font-size:9px;color:var(--dim);margin-top:5px}
+.typing{display:flex;gap:5px;padding:12px 14px}
+.typing i{width:6px;height:6px;border-radius:50%;background:var(--cyan);animation:typeDot 1s infinite}
+.typing i:nth-child(2){animation-delay:.15s}.typing i:nth-child(3){animation-delay:.3s}
+@keyframes typeDot{0%,100%{transform:translateY(0);opacity:.4}50%{transform:translateY(-4px);opacity:1}}
+
+.cmdbar{display:flex;gap:10px;padding:14px;border-top:1px solid var(--line2);background:rgba(0,0,0,.25)}
+.cmdbar input{flex:1;background:transparent;border:1px solid var(--line);padding:12px 14px;color:var(--text);
+  font-family:var(--mono);font-size:13px;outline:none;letter-spacing:1px}
+.cmdbar input:focus{border-color:var(--cyan);box-shadow:0 0 18px rgba(0,220,255,.2)}
+.cmdbar input::placeholder{color:var(--mute)}
+.cmdbar button{background:var(--cyan-dim);border:1px solid var(--cyan);color:var(--cyan);padding:0 20px;
+  font-family:var(--mono);cursor:pointer;font-size:12px;letter-spacing:2px;transition:.2s}
+.cmdbar button:hover{background:var(--cyan);color:#001220;box-shadow:0 0 24px rgba(0,220,255,.6)}
+
+/* ── CENTER: HOLOGRAM STAGE ── */
+.stage{position:relative;overflow:hidden;display:grid;place-items:center}
+.stage canvas{position:absolute;inset:0;width:100%;height:100%}
+.holo-label{position:absolute;top:12px;left:50%;transform:translateX(-50%);
+  font-family:var(--mono);font-size:10px;letter-spacing:4px;color:var(--cyan);opacity:.8}
+#holoStatus{position:absolute;bottom:14px;left:50%;transform:translateX(-50%);
+  font-family:var(--mono);font-size:10px;letter-spacing:3px;color:var(--green);opacity:.9;animation:blink 3s infinite}
+
+/* ── mode chips under stage ── */
+.modes{display:flex;gap:10px;position:absolute;bottom:44px;left:50%;transform:translateX(-50%)}
+.mode{padding:7px 18px;border:1px solid var(--line);background:rgba(0,220,255,.05);color:var(--dim);
+  font-family:var(--mono);font-size:11px;letter-spacing:2px;cursor:pointer;transition:.25s}
+.mode:hover,.mode.active{color:var(--cyan);border-color:var(--cyan);background:var(--cyan-dim);box-shadow:0 0 16px rgba(0,220,255,.3)}
+
+/* corner readouts inside stage */
+.corner{position:absolute;font-family:var(--mono);font-size:9px;color:var(--dim);line-height:1.9;letter-spacing:1px}
+.corner.tl{top:38px;left:16px}.corner.tr{top:38px;right:16px;text-align:right}
+.corner.bl{bottom:74px;left:16px}.corner.br{bottom:74px;right:16px;text-align:right}
+.corner b{color:var(--cyan);font-weight:400}
+
+/* floating particles behind (decor) */
+.particle{position:absolute;width:2px;height:2px;background:var(--cyan);border-radius:50%;opacity:.5;pointer-events:none}
+</style>
+</head>
+<body>
+<div class="scanband"></div>
+
+<div class="shell">
+  <!-- TOP BAR -->
+  <header class="topbar">
+    <div class="brand">
+      <div class="logo"><b>F</b></div>
+      <div><h1>FRIDAY</h1><small>COMMAND CENTER · v5</small></div>
+    </div>
+    <div class="statusline">
+      <span>CORE <b class="blink">ACTIVE</b></span>
+      <span>UPLINK <b>127.0.0.1</b></span>
+      <span>MODEL <b>OMNI-ROUTE</b></span>
+      <span id="utcClock">00:00:00 UTC</span>
+    </div>
+  </header>
+
+  <!-- MAIN -->
+  <div class="main">
+
+    <!-- LEFT: telemetry -->
+    <aside class="panel">
+      <div class="panel-hd">SYSTEM TELEMETRY</div>
+      <div class="panel-bd">
+        <div class="gauge"><div class="gauge-top"><span>CPU LOAD</span><span id="cpuV">0%</span></div><div class="gauge-bar"><div class="gauge-fill" id="cpuF"></div></div></div>
+        <div class="gauge"><div class="gauge-top"><span>MEMORY</span><span id="memV">0%</span></div><div class="gauge-bar"><div class="gauge-fill" id="memF"></div></div></div>
+        <div class="gauge"><div class="gauge-top"><span>DISK</span><span id="dskV">0%</span></div><div class="gauge-bar"><div class="gauge-fill" id="dskF"></div></div></div>
+        <div class="gauge"><div class="gauge-top"><span>ENERGY</span><span id="batV">0%</span></div><div class="gauge-bar"><div class="gauge-fill" id="batF" style="background:linear-gradient(90deg,var(--gold),var(--green))"></div></div></div>
+
+        <div class="gauge" style="margin-top:20px"><div class="gauge-top"><span>AUDIO LINK</span><span id="btCount">0 DEVICES</span></div></div>
+        <div id="btList"></div>
+      </div>
+    </aside>
+
+    <!-- CENTER: hologram -->
+    <div class="panel stage">
+      <div class="holo-label">■ TACTICAL HOLOGRAM — MARK VII</div>
+      <canvas id="holo"></canvas>
+      <div class="corner tl">
+        <b id="l1">SYS.CORE</b> // ONLINE<br>
+        <b id="l2">FREQ</b> <span id="freq">2.60</span> GHz<br>
+        <b id="l3">NET</b> // ACTIVE
+      </div>
+      <div class="corner tr">
+        BUILD <b>v5.0.1</b><br>
+        MEM.ALLOC <b id="alloc">NOMINAL</b><br>
+        LATENCY <b>&lt;1ms</b>
+      </div>
+      <div class="corner bl" id="cornerBl">
+        <span id="m1">RING.SYNC …</span><br>
+        <span id="m2">GRAV.CAL …</span>
+      </div>
+      <div class="corner br" id="cornerBr">
+        <span id="m3">SCAN PASS 01</span><br>
+        <span id="m4">AWAITING INPUT</span>
+      </div>
+      <div class="modes">
+        <button class="mode active" data-mode="focus">FOCUS</button>
+        <button class="mode" data-mode="combat">COMBAT</button>
+        <button class="mode" data-mode="stealth">STEALTH</button>
+        <button class="mode" data-mode="social">SOCIAL</button>
+      </div>
+      <div id="holoStatus">STANDBY</div>
+    </div>
+
+    <!-- RIGHT: conversation -->
+    <aside class="panel">
+      <div class="panel-hd">AI CONNECTION</div>
+      <div class="panel-bd" style="display:flex;flex-direction:column">
+        <div class="chat" id="chat"></div>
+        <div class="cmdbar">
+          <input id="cmd" placeholder="ISSUE COMMAND / ASK…" autocomplete="off">
+          <button id="send">SEND</button>
+        </div>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<script>
+/* ═══════════════ CANVAS HOLOGRAM ═══════════════ */
+const c=document.getElementById('holo'),x=c.getContext('2d');
+let W,H,CX,CY,mode='focus',t0=performance.now();
+const COLORS={focus:[0,220,255],combat:[255,77,109],stealth:[140,160,255],social:[255,207,92]};
+function rz(){W=c.width=c.clientWidth*devicePixelRatio;H=c.height=c.clientHeight*devicePixelRatio;
+  c.style.width=c.clientWidth+'px';c.style.height=c.clientHeight+'px';
+  x.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);CX=W/2;CY=H/2;}
+window.addEventListener('resize',rz);rz();
+const ring=(r,spd,dir,ticks,len,wid,ac)=>{x.save();x.translate(CX,CY);x.rotate(performance.now()*spd*dir);
+  x.beginPath();x.arc(0,0,r,0,7);x.strokeStyle=`rgba(${ac},${ac? .18:.22})`.replace(',,',',');x.lineWidth=1;x.stroke();
+  for(let i=0;i<ticks;i++){const a=i/ticks*6.283;if(i%3===0)continue;
+    x.beginPath();x.moveTo(Math.cos(a)*(r-len),Math.sin(a)*(r-len));x.lineTo(Math.cos(a)*r,Math.sin(a)*r);
+    x.strokeStyle=`rgba(${ac},${.15+.25*Math.abs(Math.sin(a*2+performance.now()*.002))})`;x.lineWidth=wid;x.stroke();}
+  x.restore();};
+let col=COLORS.focus;
+function draw(t){
+  const a=col;x.clearRect(0,0,W,H);const m=Math.min(W,H);
+  // outer glow
+  let g=x.createRadialGradient(CX,CY,0,CX,CY,m*.5);g.addColorStop(0,`rgba(${a},.10)`);g.addColorStop(1,'transparent');
+  x.fillStyle=g;x.fillRect(0,0,W,H);
+  // rings
+  ring(m*.38,t*.0003,1,72,8,1.5,a);ring(m*.32,t*.0005,-1,48,12,1,a);ring(m*.26,t*.0004,1,36,6,2,a);
+  // rotating hex core
+  x.save();x.translate(CX,CY);x.rotate(t*.0002);x.beginPath();
+  for(let i=0;i<6;i++){const p=i/6*6.283;if(i===0)x.moveTo(Math.cos(p)*m*.16,Math.sin(p)*m*.16);else x.lineTo(Math.cos(p)*m*.16,Math.sin(p)*m*.16);}
+  x.closePath();x.strokeStyle=`rgba(${a},.5)`;x.lineWidth=1.5;x.shadowColor=`rgba(${a},.6)`;x.shadowBlur=18;x.stroke();x.shadowBlur=0;
+  // inner hex
+  x.beginPath();for(let i=0;i<6;i++){const p=i/6*6.283;if(i===0)x.moveTo(Math.cos(p)*m*.10,Math.sin(p)*m*.10);else x.lineTo(Math.cos(p)*m*.10,Math.sin(p)*m*.10);}
+  x.closePath();x.strokeStyle=`rgba(${a},.3)`;x.lineWidth=1;x.stroke();
+  // core dot
+  x.beginPath();x.arc(0,0,m*.02+Math.sin(t*.002)*m*.006,0,7);x.fillStyle=`rgba(${a},.9)`;x.shadowColor=`rgba(${a},1)`;x.shadowBlur=24;x.fill();x.shadowBlur=0;
+  x.restore();
+  // orbiting dots
+  for(let i=0;i<4;i++){const p=t*.0004*(i+1)+i*1.57;const R=m*.30;
+    x.beginPath();x.arc(CX+Math.cos(p)*R,CY+Math.sin(p)*R,m*.006,0,7);x.fillStyle=`rgba(${a},.6)`;x.fill();}
+  requestAnimationFrame(draw);}
+requestAnimationFrame(draw);
+
+/* ═══════════════ MODE SWITCH ═══════════════ */
+document.querySelectorAll('.mode').forEach(mb=>mb.addEventListener('click',()=>{
+  document.querySelectorAll('.mode').forEach(m=>m.classList.remove('active'));mb.classList.add('active');
+  mode=mb.dataset.mode;col=COLORS[mode];
+  document.getElementById('holoStatus').textContent=mode.toUpperCase()+' MODE';
+  push('f','Mode shifted to '+mode.toUpperCase()+'. Hologram re-tuned.','SYS');
+  updateCorner(mode);
+}));
+function updateCorner(mode){
+  const d={focus:['RING.SYNC SYNCED','GRAV.CAL NOMINAL','SCAN PASS 07','AWAITING INPUT'],
+           combat:['WEAP.SYS ARMED','SHIELD 100%','TARGET ACQ','TRACKING'],
+           stealth:[('CLOAK ')+'ENGAGED','EMISS 0.02%','NOISE MASK','COVERT'],
+           social:['LINK OPEN','NET OK','PROTOCOL JOY','RESPONDING']};
+  const v=d[mode];
+  for(let i=0;i<4;i++){const el=i<2?document.getElementById('m'+(i+1)):document.getElementById('m'+(i+1));el.textContent=v[i];}
+}
+
+/* ═══════════════ TELEMETRY SIM ═══════════════ */
+function tickData(){
+  const cpu=Math.min(97,25+Math.random()*45+ (mode==='combat'?30:mode==='focus'?15:0));
+  const mem=52+Math.random()*18, dsk=41+Math.random()*3, bat=Math.max(20,85-Math.random()*6);
+  const set=(v,f,id,el)=>{document.getElementById(id).textContent=v+'%';document.getElementById(el).style.width=v+'%';};
+  set(Math.round(cpu),1,'cpuV','cpuF');set(Math.round(mem),1,'memV','memF');set(Math.round(dsk),1,'dskV','dskF');set(Math.round(bat),1,'batV','batF');
+  document.getElementById('freq').textContent=(2.4+Math.random()*.4).toFixed(2);
+}
+setInterval(tickData,1500);tickData();
+
+/* ═══════════════ AUDIO DEVICES ═══════════════ */
+const BT=[['Buds Pro',1],['OnePlus Nord Buds 3',0],['realme TechLife',0],['UBON BT 50',0]];
+const bl=document.getElementById('btList');
+BT.forEach(([n,on])=>{const d=document.createElement('div');d.className='dev';
+  d.innerHTML=`<span class="dot ${on?'on':'off'}"></span><span class="nm">${n}</span><span class="st">${on?'LINKED':'IDLE'}</span>`;bl.appendChild(d);});
+document.getElementById('btCount').textContent=BT.filter(b=>b[1]).length+' DEVICES';
+
+/* ═══════════════ CONVERSATION ═══════════════ */
+const chat=document.getElementById('chat');
+function push(sender,text,tag){
+  const m=document.createElement('div');m.className='msg '+(sender==='u'?'u':'f');
+  m.innerHTML=text+(tag?`<small>${tag} · ${new Date().toLocaleTimeString()}</small>`:'');
+  chat.appendChild(m);chat.scrollTop=chat.scrollHeight;}
+push('f','Good evening, sir. All systems nominal. Awaiting your directive.','BOOT');
+const RESPONSES=[
+ 'Scanning local context… Understood. Shall I open the workspace and brief the day’s priorities?',
+ 'Sensors read calm conditions. We are within tolerance. What would you have me do next?',
+ 'Acknowledged. I’ve filed that to long-term memory. Anything else, sir?',
+ 'Running diagnostics now… CPU '+(30+Math.round(Math.random()*40))+'%, memory stable. All clear.',
+ 'Noted. I can also handle scheduling, media, git and email — just say the word.'
+];
+document.getElementById('send').addEventListener('click',go);
+document.getElementById('cmd').addEventListener('keydown',e=>{if(e.key==='Enter')go();});
+function go(){
+  const inp=document.getElementById('cmd'),t=inp.value.trim();if(!t)return;
+  push('u',t);inp.value='';
+  const ty=document.createElement('div');ty.className='typing';ty.innerHTML='<i></i><i></i><i></i>';chat.appendChild(ty);chat.scrollTop=chat.scrollHeight;
+  const re=RESPONSES[Math.floor(Math.random()*RESPONSES.length)];
+  setTimeout(()=>{ty.remove();push('f',re,'AI');},900+Math.random()*1100);
+}
+
+/* ═══════════════ CLOCK + CORNER SCAN ═══════════════ */
+setInterval(()=>{document.getElementById('utcClock').textContent=new Date().toISOString().slice(11,19)+' UTC';},1000);
+let scan=1;setInterval(()=>{scan=(scan%12)+1;document.getElementById('m3').textContent='SCAN PASS '+String(scan).padStart(2,'0');},1600);
+
+/* ═══════════════ AMBIENT PARTICLE RAIN ═══════════════ */
+const shell=document.querySelector('.stage');
+for(let i=0;i<26;i++){const p=document.createElement('div');p.className='particle';
+  p.style.left=Math.random()*100+'%';p.style.top=Math.random()*100+'%';
+  p.style.animation=`float ${6+Math.random()*8}s linear infinite`;p.style.animationDelay=-Math.random()*8+'s';
+  shell.appendChild(p);}
+const st=document.createElement('style');
+st.textContent=`@keyframes float{0%{transform:translateY(0);opacity:0}10%{opacity:.6}100%{transform:translateY(-120px);opacity:0}}`;
+document.head.appendChild(st);
+
+/* seed welcome chatter */
+setTimeout(()=>{push('f','By the way — I noticed you left 3 tasks open from this morning. Want me to focus on the top one?','PROACTIVE');},9000);
+</script>
+</body>
+</html>

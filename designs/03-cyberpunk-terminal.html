@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FRIDAY — Cyberpunk Terminal Core</title>
+<style>
+/* ═══════════════════════════════════════════════════════════════════════
+   DESIGN 03 · CYBERPUNK TERMINAL CORE
+   Night-city console: pure mono terminal, neon green/magenta, CRT curves,
+   boot log, hex pulse, glitch. A hacker's AI, jacked into the matrix.
+   ═══════════════════════════════════════════════════════════════════════ */
+:root{
+  --bg:#020403; --panel:#04100a;
+  --green:#00ff9c; --magenta:#ff2bd6; --amber:#ffb454; --blue:#00d9ff;
+  --dim:#0f6b48; --mute:#07503a;
+  --mono:'JetBrains Mono','Cascadia Code','SF Mono',monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;background:var(--bg);color:var(--green);
+  font-family:var(--mono);overflow:hidden}
+
+/* ── CRT: scanlines + curvature + flicker ── */
+.crt{position:fixed;inset:0;z-index:999;pointer-events:none}
+.crt::before{content:"";position:absolute;inset:0;
+  background:repeating-linear-gradient(0deg,transparent 0 3px,rgba(0,0,0,.32) 3px 4px);}
+.crt::after{content:"";position:absolute;inset:0;
+  background:radial-gradient(ellipse at center,transparent 55%,rgba(0,0,0,.5) 100%);
+  animation:crtFlicker 6s steps(60) infinite}
+@keyframes crtFlicker{0%,100%{opacity:.9}8%{opacity:.82}9%{opacity:.95}54%{opacity:.86}55%{opacity:.93}97%{opacity:.85}}
+
+/* ── bg grid / city ── */
+.scape{position:fixed;inset:0;z-index:0;pointer-events:none}
+.scape .grid{position:absolute;left:0;right:0;bottom:0;height:45%;
+  background:
+    linear-gradient(rgba(0,255,156,.06) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(0,255,156,.06) 1px,transparent 1px);
+  background-size:40px 40px;transform:perspective(300px) rotateX(60deg);transform-origin:bottom;
+  animation:gridShift 8s linear infinite}
+@keyframes gridShift{from{background-position:0 0}to{background-position:0 40px}}
+
+/* ── sheen band ── */
+.sheen{position:fixed;left:0;right:0;height:140px;z-index:2;pointer-events:none;
+  background:linear-gradient(180deg,transparent,rgba(0,255,156,.05),transparent);
+  animation:sheen 6s linear infinite}
+@keyframes sheen{0%{top:-25%}100%{top:125%}}
+
+/* ── main ── */
+.shell{position:relative;z-index:5;height:100vh;display:grid;grid-template-rows:auto 1fr auto;
+  padding:14px;gap:12px}
+
+/* ── header ── */
+.hdr{display:flex;align-items:center;gap:16px;padding:10px 16px;border:1px solid rgba(0,255,156,.35);
+  background:var(--panel);box-shadow:0 0 24px rgba(0,255,156,.08) inset}
+.hdr .prompt{color:var(--magenta)}.hdr .path{color:var(--amber)}
+.hdr .blink{animation:blink 1s steps(2) infinite}
+@keyframes blink{50%{opacity:0}}
+.hdr .live{color:var(--green);animation:blink 1.6s steps(2) infinite}
+.hdr .sp{flex:1}
+.hdr .stat{font-size:12px;color:var(--dim)}
+
+/* ── body split ── */
+.body{display:grid;grid-template-columns:1fr 340px;gap:12px;min-height:0}
+
+/* left: terminal log */
+.term{background:var(--panel);border:1px solid rgba(0,255,156,.35);overflow:hidden;
+  display:flex;flex-direction:column;min-height:0}
+.term-hd{padding:8px 14px;border-bottom:1px solid rgba(0,255,156,.2);font-size:12px;
+  display:flex;justify-content:space-between;color:var(--dim)}
+.log{flex:1;overflow-y:auto;padding:12px 14px;font-size:12.5px;line-height:1.65}
+.log::-webkit-scrollbar{width:6px}.log::-webkit-scrollbar-thumb{background:rgba(0,255,156,.3)}
+.log .line{white-space:pre-wrap;word-break:break-word;animation:lineIn .15s steps(2)}
+@keyframes lineIn{from{opacity:0}to{opacity:1}}
+.log .ok{color:var(--green)}.log .warn{color:var(--amber)}.log .err{color:var(--magenta)}
+.log .sys{color:var(--blue)}.log .usr{color:#fff}
+.log .tm{color:var(--mute)}
+
+/* bottom input of terminal */
+.inline{display:flex;gap:8px;padding:10px 14px;border-top:1px solid rgba(0,255,156,.2)}
+.inline .ps{color:var(--magenta);font-size:13px}
+.inline input{flex:1;background:transparent;border:none;outline:none;color:var(--green);
+  font-family:var(--mono);font-size:13px;caret-color:var(--green)}
+
+/* right: hex core + sidebar */
+.side{display:flex;flex-direction:column;gap:12px;min-height:0}
+.hexcore{flex:1;border:1px solid rgba(255,43,214,.4);background:rgba(4,16,10,.8);position:relative;
+  display:grid;place-items:center;overflow:hidden}
+.hexcore::before{content:"";position:absolute;inset:0;
+  background:repeating-linear-gradient(90deg,transparent 0 8px,rgba(255,43,214,.05) 8px 9px);}
+#hex{position:absolute;inset:0;width:100%;height:100%}
+.hexlabel{position:absolute;top:10px;left:14px;font-size:10px;color:var(--magenta);letter-spacing:2px}
+.hexstat{position:absolute;bottom:12px;left:14px;right:14px;font-size:11px;color:var(--dim);
+  display:flex;justify-content:space-between}
+.hexstat b{color:var(--green);font-weight:400}
+
+/* side data cards */
+.databox{background:var(--panel);border:1px solid rgba(0,255,156,.35);padding:12px 14px;font-size:11.5px}
+.databox .dk{color:var(--mute);margin-bottom:8px;letter-spacing:1px}
+.databox .dv{display:flex;justify-content:space-between;padding:3px 0}
+.databox .dv b{color:var(--green);font-weight:400}
+.databox .dv .bar{width:70px;height:5px;background:rgba(0,255,156,.12)}
+.databox .dv .bar i{display:block;height:100%;background:var(--green);width:0%;transition:width .6s}
+.databox .dv.err b{color:var(--magenta)}
+.databox .dv.warn b{color:var(--amber)}
+.databox .mk{color:var(--magenta)}
+
+/* ── quick cmds footer ── */
+.qcmds{display:flex;gap:10px;justify-content:center;padding-top:4px}
+.qcmd{font-size:11px;padding:7px 16px;border:1px solid rgba(0,255,156,.35);color:var(--dim);
+  cursor:pointer;transition:.2s;letter-spacing:1px}
+.qcmd:hover{color:var(--green);border-color:var(--green);background:rgba(0,255,156,.08);box-shadow:0 0 16px rgba(0,255,156,.25)}
+</style>
+</head>
+<body>
+<div class="crt"></div>
+<div class="scape"><div class="grid"></div></div>
+<div class="sheen"></div>
+
+<div class="shell">
+  <header class="hdr">
+    <span class="prompt">⌁</span>
+    <span class="path">root@friday:~</span>
+    <span class="live" id="netLive">UPLINK:LIVE</span>
+    <span class="sp"></span>
+    <span class="stat">SESSION <b id="sess">#041</b></span>
+    <span class="stat">BUILD <b>v5.0.1</b></span>
+    <span class="stat blink">█</span>
+  </header>
+
+  <div class="body">
+    <div class="term">
+      <div class="term-hd"><span>friday_terminal.log</span><span id="logClock">00:00:00</span></div>
+      <div class="log" id="log"></div>
+      <div class="inline"><span class="ps">bhavya@friday:~$</span><input id="cmd" autocomplete="off" placeholder="_" spellcheck="false"></div>
+    </div>
+
+    <div class="side">
+      <div class="hexcore">
+        <div class="hexlabel">◈ CORE.SYS</div>
+        <canvas id="hex"></canvas>
+        <div class="hexstat"><span>CYCLE <b id="cyc">0000</b></span><span>HUE <b>MAGENTA</b></span><span id="hexState">SIGNAL OK</span></div>
+      </div>
+
+      <div class="databox">
+        <div class="dk">▲ SYS.READ</div>
+        <div class="dv"><span>CPU</span><span class="bar"><i id="cpuB"></i></span><b id="cpuV">0%</b></div>
+        <div class="dv"><span>MEM</span><span class="bar"><i id="memB"></i></span><b id="memV">0%</b></div>
+        <div class="dv"><span>NET</span><span class="bar"><i id="netB"></i></span><b>LOOP</b></div>
+        <div class="dv warn"><span>PKTS.DROP</span><span class="bar"><i id="dropB"></i></span><b id="dropV">0</b></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="qcmds">
+    <div class="qcmd" data-c="status">$ STATUS</div>
+    <div class="qcmd" data-c="scan">$ SCAN</div>
+    <div class="qcmd" data-c="clear">$ CLEAR</div>
+    <div class="qcmd" data-c="matrix">$ MATRIX</div>
+    <div class="qcmd" data-c="help">$ HELP</div>
+  </div>
+</div>
+
+<script>
+/* ── terminal logger ── */
+const log=document.getElementById('log');
+function L(text,cls='ok'){
+  const d=document.createElement('div');d.className='line '+(cls||'');
+  const t=new Date().toLocaleTimeString([],{hour12:false});
+  d.innerHTML=`<span class="tm">[${t}]</span> ${text}`;
+  log.appendChild(d);log.scrollTop=log.scrollHeight;
+  return d;
+}
+/* boot sequence */
+const BOOT=[
+ ['INIT FRIDAY CORE v5.0.1 ... ', 'ok'],
+ ['MOUNT /memory … [DONE]', 'ok'],
+ ['LINK OMNIROUTE @127.0.0.1:20128 … [OK]', 'ok'],
+ ['LOAD modules: scheduler, notes, email, media, git … [OK]', 'ok'],
+ ['SENSOR ARRAY … 6 devices scanned, 0 linked', 'warn'],
+ ['CORE ONLINE. awaiting input.', 'sys'],
+];
+let bi=0;(function boot(){
+  if(bi<BOOT.length){const [txt,cls]=BOOT[bi++];L(txt,cls);setTimeout(boot,140);}
+  else{L('> system ready. type $ help', 'sys');setTimeout(()=>pushAI('Connection stable. What do we run tonight?'),1200);}
+})();
+
+/* ── hex core canvas ── */
+const cv=document.getElementById('hex'),x=cv.getContext('2d');
+function rz(){cv.width=cv.clientWidth*devicePixelRatio;cv.height=cv.clientHeight*devicePixelRatio;
+  cv.style.width=cv.clientWidth+'px';cv.style.height=cv.clientHeight+'px';
+  x.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);}
+window.addEventListener('resize',rz);rz();
+let cycle=0;
+function hex(t){
+  x.clearRect(0,0,cv.clientWidth,cv.clientHeight);
+  const w=cv.clientWidth,h=cv.clientHeight,CX=w/2,CY=h/2;
+  const R=Math.min(w,h)*0.32+Math.sin(t*.001)*6;
+  // outer spinning hex
+  for(const mult of [1,.72,.45]){
+    const rot=t*.0004*mult*4;
+    x.save();x.translate(CX,CY);x.rotate(rot);x.beginPath();
+    for(let i=0;i<6;i++){const p=i/6*6.283;if(i===0)x.moveTo(Math.cos(p)*R*mult,Math.sin(p)*R*mult);else x.lineTo(Math.cos(p)*R*mult,Math.sin(p)*R*mult);}
+    x.closePath();
+    x.strokeStyle=`rgba(${mult===1?'255,43,214':'0,255,156'},${.5+.3*Math.sin(t*.002+mult)})`;
+    x.shadowColor='#ff2bd6';x.shadowBlur=mult===1?26:0;x.lineWidth=mult===1?2:1;x.stroke();
+    x.restore();
+  }
+  // pulse dot
+  x.beginPath();x.arc(CX,CY,3+Math.sin(t*.003)*2,0,7);x.fillStyle='#00ff9c';x.shadowColor='#00ff9c';x.shadowBlur=18;x.fill();
+  // data stream lines
+  x.strokeStyle='rgba(0,255,156,.25)';
+  for(let i=0;i<6;i++){const a=i/6*6.283+Math.sin(t*.001+i)*.2;
+    const r1=R*1.25,r2=R*1.45;
+    x.beginPath();x.moveTo(CX+Math.cos(a)*r1,CY+Math.sin(a)*r1);x.lineTo(CX+Math.cos(a)*r2,CY+Math.sin(a)*r2);x.stroke();}
+  cycle++;document.getElementById('cyc').textContent=String(cycle%10000).padStart(4,'0');
+  requestAnimationFrame(hex);
+}
+requestAnimationFrame(hex);
+
+/* ── telemetry ── */
+setInterval(()=>{
+  const cpu=Math.round(18+Math.random()*50),mem=Math.round(45+Math.random()*20),drop=Math.floor(Math.random()*4);
+  document.getElementById('cpuV').textContent=cpu+'%';document.getElementById('cpuB').style.width=cpu+'%';
+  document.getElementById('memV').textContent=mem+'%';document.getElementById('memB').style.width=mem+'%';
+  document.getElementById('dropV').textContent=drop;document.getElementById('dropB').style.width=Math.min(100,drop*25)+'%';
+},1500);
+
+/* ── command engine ── */
+const CMD={};
+CMD.status=()=>L('status: CPU '+document.getElementById('cpuV').textContent+' · MEM '+document.getElementById('memV').textContent+' · uplink LOOP · devices 0/6','sys');
+CMD.scan=()=>{L('> running SCAN …','sys');setTimeout(()=>L('scan complete: 6 bt devices, 0 linked · 3 files modified today','ok'),700);};
+CMD.matrix=()=>{L('> ENTERING MATRIX MODE …','warn');
+  let n=0;(function rain(){for(let i=0;i<40;i++){L(Math.random()<.5?'0':'1','ok');}n++;
+    if(n<14)setTimeout(rain,60);else L('> matrix module detached. returning.','sys');})();};
+CMD.help=()=>{L('commands: status, scan, matrix, clear, help, or ask me anything.','ok');};
+CMD.clear=()=>{log.innerHTML='';};
+CMD._default=t=>{L('bhavya@friday:~$ '+t,'usr');L('> processing…','sys');
+  setTimeout(()=>{
+    if(/time|date/i.test(t))L('local time is '+new Date().toLocaleString(),'ok');
+    else if(/task|todo/i.test(t))L('3 tasks open. top: "finish FRIDAY UI redesign" · due today.','ok');
+    else if(/scan|device/i.test(t)){L('> rescan…','sys');setTimeout(()=>L('0/6 devices linked · Buds Pro idle','warn'),400);}
+    else if(/music|play/i.test(t))L('no active player. shall I start a calm playlist?','ok');
+    else L('acknowledged and logged to memory. ask about: time, tasks, devices, music.','sys');
+  },650+Math.random()*600);};
+
+function run(cmdline){
+  if(!cmdline.trim())return;
+  L('bhavya@friday:~$ '+cmdline,'usr');
+  const c=cmdline.trim().split(' ')[0].toLowerCase();
+  const fn=CMD[c]||CMD._default;
+  if(typeof fn==='function')fn(cmdline);else fn.call(null,cmdline);
+}
+const inp=document.getElementById('cmd');
+inp.addEventListener('keydown',e=>{if(e.key==='Enter'){run(inp.value);inp.value='';}});
+document.querySelectorAll('.qcmd').forEach(b=>b.addEventListener('click',()=>run(b.dataset.c)));
+
+function pushAI(t){L('friday: '+t,'sys');}
+
+/* ── clock ── */
+setInterval(()=>{document.getElementById('logClock').textContent=new Date().toLocaleTimeString([],{hour12:false});},1000);
+setTimeout(()=>{document.getElementById('netLive').textContent='UPLINK:DROP';document.getElementById('netLive').classList.remove('live');
+  document.getElementById('netLive').style.color='var(--magenta)';},15000);
+setTimeout(()=>{document.getElementById('netLive').textContent='UPLINK:LIVE';document.getElementById('netLive').style.color='var(--green)';},19000);
+</script>
+</body>
+</html>
