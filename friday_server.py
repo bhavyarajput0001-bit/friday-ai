@@ -718,6 +718,7 @@ def _tts_hermes(text):
     if not HERMES_VENV.exists():
         subprocess.Popen(["say", "-v", "Samantha", text])
         return
+    text = text.encode("utf-8", errors="ignore").decode("utf-8", errors="ignore")
     payload = json.dumps(text, ensure_ascii=False)
     code = (
         "import asyncio, edge_tts, tempfile, subprocess, json\n"
