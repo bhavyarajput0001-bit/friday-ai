@@ -701,6 +701,8 @@ HERMES_VOICE = "en-US-AriaNeural"
 def tts(text):
     if not cfg.get("speak_on", False):
         return
+    if not text or text.startswith("Routing:"):
+        return
     voice = VOICE_MAP.get(cfg.get("voice_index", "siri"), "Samantha")
     try:
         if voice == "hermes":
@@ -716,11 +718,12 @@ def _tts_hermes(text):
     if not HERMES_VENV.exists():
         subprocess.Popen(["say", "-v", "Samantha", text])
         return
-    safe = text.replace("\\", "\\\\").replace("'", "\\'").replace('"', '\\"')
+    payload = json.dumps(text, ensure_ascii=False)
     code = (
-        "import asyncio, edge_tts, tempfile, subprocess\n"
+        "import asyncio, edge_tts, tempfile, subprocess, json\n"
         "async def main():\n"
-        "    tts = edge_tts.Communicate('" + safe + "', voice='" + HERMES_VOICE + "')\n"
+        "    text = json.loads(" + json.dumps(payload) + ")\n"
+        "    tts = edge_tts.Communicate(text, voice=" + json.dumps(HERMES_VOICE) + ")\n"
         "    p = tempfile.mktemp(suffix='.mp3')\n"
         "    await tts.save(p)\n"
         "    subprocess.Popen(['afplay', p])\n"

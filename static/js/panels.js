@@ -720,6 +720,7 @@ const Panels = (() => {
     }
 
     function _capitalize(str) {
+        if (!str) return 'Pending';
         return str.charAt(0).toUpperCase() + str.slice(1);
     }
 
