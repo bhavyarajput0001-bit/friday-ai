@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#060a13">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="manifest" href="/pwa/manifest.json">
+<link rel="icon" type="image/png" sizes="192x192" href="/pwa/icon-192.png">
+<title>FRIDAY AI</title>
+<link rel="stylesheet" href="/pwa/css/style.css">
+</head>
+<body>
+<div class="app">
+  <div class="topbar">
+    <div class="logo">◆ FRIDAY</div>
+    <div class="status">
+      <span class="dot" id="statusDot"></span>
+      <span class="conn-text" id="statusText">ACTIVE</span>
+    </div>
+  </div>
+
+  <div class="scene-grid" id="sceneGrid"></div>
+
+  <div class="controls" id="controlBar">
+    <button class="c-btn primary" data-cmd="coding mode">💻 Code</button>
+    <button class="c-btn" data-cmd="focus mode">🎯 Focus</button>
+    <button class="c-btn" data-cmd="movie mode">🎬 Movie</button>
+    <button class="c-btn green" data-cmd="show clipboard">📋 Clipboard</button>
+    <button class="c-btn" data-cmd="system status">📊 System</button>
+  </div>
+
+  <div class="convo" id="conversation"></div>
+
+  <div class="input-row">
+    <input type="text" id="cmdInput" placeholder="Type a command..." autocomplete="off" autocapitalize="off" autocorrect="off">
+    <button class="send-btn" id="sendBtn">➤</button>
+  </div>
+</div>
+
+<div class="sys-panel" id="sysPanel">
+  <div class="sys-row"><span>CPU</span><span class="val" id="sCpu">--</span></div>
+  <div class="sys-row"><span>RAM</span><span class="val" id="sRam">--</span></div>
+  <div class="sys-row"><span>SSD</span><span class="val" id="sSsd">--</span></div>
+  <div class="sys-row"><span>Battery</span><span class="val" id="sBat">--</span></div>
+  <div class="sys-row"><span>OmniRoute</span><span class="val" id="sOmni">--</span></div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.4/socket.io.min.js"></script>
+<script src="/pwa/js/app.js"></script>
+</body>
+</html>

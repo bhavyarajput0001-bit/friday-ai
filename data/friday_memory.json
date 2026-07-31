@@ -1,0 +1,212 @@
+{
+  "cfg": {
+    "mode": "interact",
+    "voice_index": "siri",
+    "speak_on": true,
+    "clap_trigger": false,
+    "wake_word": "friday",
+    "clap_thresh": 2000,
+    "listen_timeout": 4,
+    "continuous_listen": false
+  },
+  "custom_cmds": {},
+  "tasks": [
+    {
+      "id": "t1",
+      "title": "Finish Friday UI Design",
+      "status": "done",
+      "progress": 100,
+      "priority": "high",
+      "due": "Online"
+    },
+    {
+      "id": "t2",
+      "title": "Review Code Repository",
+      "status": "done",
+      "progress": 100,
+      "priority": "medium",
+      "due": "Due 3:00 PM"
+    },
+    {
+      "id": "t3",
+      "title": "Backup Important Files",
+      "status": "done",
+      "progress": 100,
+      "priority": "low",
+      "due": "Queued"
+    }
+  ],
+  "agenda": [
+    {
+      "id": "a1",
+      "time": "9:00 AM",
+      "title": "Gym & Training",
+      "duration": "1h"
+    },
+    {
+      "id": "a2",
+      "time": "11:30 AM",
+      "title": "Project Friday UI",
+      "duration": "",
+      "highlight": true
+    },
+    {
+      "id": "a3",
+      "time": "3:00 PM",
+      "title": "Meeting \u2013 Team Sync",
+      "duration": "30m"
+    },
+    {
+      "id": "a4",
+      "time": "7:00 PM",
+      "title": "Personal Time",
+      "duration": "2h"
+    }
+  ],
+  "knowledge": {
+    "projects": {
+      "count": 22,
+      "label": "Files"
+    },
+    "notes": {
+      "count": 128,
+      "label": "Items"
+    },
+    "research": {
+      "count": 14,
+      "label": "Sources"
+    },
+    "voice_memos": {
+      "count": 9,
+      "label": "Recordings"
+    },
+    "downloads": {
+      "count": 3805,
+      "label": "Files"
+    },
+    "coding": {
+      "count": 55,
+      "label": "Files"
+    },
+    "documents": {
+      "count": 86,
+      "label": "Files"
+    },
+    "coding_projects": {
+      "count": 14,
+      "label": "Projects"
+    }
+  },
+  "automations": [
+    {
+      "id": "auto1",
+      "name": "Morning Briefing",
+      "schedule": "7:00 AM Daily",
+      "enabled": true,
+      "icon": "\ud83d\udccb"
+    },
+    {
+      "id": "auto2",
+      "name": "Focus Mode",
+      "schedule": "On Schedule",
+      "enabled": true,
+      "icon": "\ud83c\udfaf"
+    },
+    {
+      "id": "auto3",
+      "name": "File Backup",
+      "schedule": "Every 6 Hours",
+      "enabled": false,
+      "icon": "\ud83d\udcbe"
+    },
+    {
+      "id": "auto4",
+      "name": "Nightly Shutdown",
+      "schedule": "12:00 AM",
+      "enabled": false,
+      "icon": "\ud83c\udf19"
+    }
+  ],
+  "productivity": {
+    "today": 87
+  },
+  "conversation": [
+    {
+      "id": "49659368",
+      "sender": "friday",
+      "text": "Friday v4 online. All systems operational.",
+      "time": "11:28 PM",
+      "emotion": null
+    },
+    {
+      "id": "d4481e8d",
+      "sender": "user",
+      "text": "what time and date right now",
+      "time": "11:29 PM",
+      "emotion": null
+    },
+    {
+      "id": "7e425a43",
+      "sender": "friday",
+      "text": "Command not recognized. Try again or say 'help'.",
+      "time": "11:29 PM",
+      "emotion": "neutral"
+    },
+    {
+      "id": "44e0bb87",
+      "sender": "user",
+      "text": "open project",
+      "time": "05:18 PM",
+      "emotion": null
+    },
+    {
+      "id": "7e29b6c3",
+      "sender": "friday",
+      "text": "project opened",
+      "time": "05:18 PM",
+      "emotion": null
+    },
+    {
+      "id": "1d3d2739",
+      "sender": "friday",
+      "text": "\ud83d\udc4b Hello! How can I assist you today?",
+      "time": "04:06 PM",
+      "emotion": null
+    },
+    {
+      "id": "51dd855c",
+      "sender": "friday",
+      "text": "\u23f0 **Test task** triggered",
+      "time": "04:11 PM",
+      "emotion": null
+    },
+    {
+      "id": "e5144997",
+      "sender": "friday",
+      "text": "\u23f0 **Test task** triggered",
+      "time": "04:21 PM",
+      "emotion": null
+    },
+    {
+      "id": "08b9642c",
+      "sender": "friday",
+      "text": "\u23f0 **Test task** triggered",
+      "time": "04:48 PM",
+      "emotion": null
+    },
+    {
+      "id": "35a6e1f1",
+      "sender": "friday",
+      "text": "\u23f0 **Test task** triggered",
+      "time": "04:53 PM",
+      "emotion": null
+    },
+    {
+      "id": "b7132b53",
+      "sender": "friday",
+      "text": "\u23f0 **Test task** triggered",
+      "time": "04:58 PM",
+      "emotion": null
+    }
+  ]
+}

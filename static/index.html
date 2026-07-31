@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FRIDAY — Personal AI Assistant</title>
+    <meta name="description" content="FRIDAY AI Personal Assistant — JARVIS-style holographic interface">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@300;400;500;600;700&family=Orbitron:wght@400;500;600;700;800;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <!-- ═══════════════════ LOADING SCREEN ═══════════════════ -->
+    <div class="loading-screen" id="loadingScreen">
+        <div class="loading-content">
+            <div class="loading-ring"></div>
+            <div class="loading-logo">◆ FRIDAY</div>
+            <div class="loading-sub" id="loadingText">Initializing systems...</div>
+            <div class="loading-bar"><div class="loading-fill" id="loadingFill"></div></div>
+        </div>
+    </div>
+
+    <!-- ═══════════════════ APP SHELL ═══════════════════ -->
+    <div class="app-shell">
+
+        <!-- ── SIDEBAR NAVIGATION ── -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-logo">
+                <svg class="logo-icon" viewBox="0 0 40 40" width="30" height="30">
+                    <circle cx="20" cy="20" r="18" fill="none" stroke="var(--accent)" stroke-width="1.5" opacity="0.6"/>
+                    <circle cx="20" cy="20" r="12" fill="none" stroke="var(--accent)" stroke-width="1" opacity="0.4"/>
+                    <circle cx="20" cy="20" r="4" fill="var(--accent)"/>
+                    <line x1="20" y1="2" x2="20" y2="8" stroke="var(--accent)" stroke-width="1.5"/>
+                    <line x1="20" y1="32" x2="20" y2="38" stroke="var(--accent)" stroke-width="1.5"/>
+                    <line x1="2" y1="20" x2="8" y2="20" stroke="var(--accent)" stroke-width="1.5"/>
+                    <line x1="32" y1="20" x2="38" y2="20" stroke="var(--accent)" stroke-width="1.5"/>
+                </svg>
+                <div class="sidebar-logo-text">
+                    <span class="logo-name">FRIDAY</span>
+                    <span class="logo-sub">PERSONAL AI</span>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav" id="sidebarNav">
+                <button class="nav-item active" data-view="home"><span class="nav-icon">◈</span>Home</button>
+                <button class="nav-item" data-view="system"><span class="nav-icon">◔</span>System Health</button>
+                <button class="nav-item" data-view="calendar"><span class="nav-icon">▦</span>Calendar</button>
+                <button class="nav-item" data-view="files"><span class="nav-icon">▤</span>Files & Scenes</button>
+                <button class="nav-item" data-view="media"><span class="nav-icon">♪</span>Media</button>
+                <button class="nav-item" data-view="notes"><span class="nav-icon">▧</span>Notes & Email</button>
+                <button class="nav-item" data-view="memory"><span class="nav-icon">◉</span>Memory</button>
+                <button class="nav-item" data-view="git"><span class="nav-icon">⎇</span>Git & Automation</button>
+                <button class="nav-item" data-view="settings"><span class="nav-icon">⚙</span>Settings & Voice</button>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="sidebar-status" id="sidebarStatus">
+                    <span class="status-dot"></span>
+                    <span class="status-text" id="sidebarStatusText">Online</span>
+                </div>
+                <div class="sidebar-clock" id="sidebarClock">--:--:--</div>
+            </div>
+        </aside>
+
+        <!-- ── MAIN CONTENT ── -->
+        <main class="main-content" id="mainContent">
+
+            <!-- ════════ HOME VIEW ════════ -->
+            <section class="view active" id="view-home">
+                <div class="home-layout">
+
+                    <!-- LEFT COLUMN -->
+                    <div class="home-col left">
+                        <div class="home-widget widget-time" id="widgetTime">
+                            <div class="time-big" id="homeTime">--:--</div>
+                            <div class="time-date" id="homeDate">—</div>
+                        </div>
+
+                        <div class="home-widget widget-health">
+                            <div class="widget-header"><h3>System Health</h3><span class="health-pct" id="macHealthPct">--</span></div>
+                            <div class="health-mac" id="healthMac">
+                                <div class="health-row"><span class="h-label">CPU</span><div class="h-bar"><div class="h-fill" id="hCpuBar" style="width:0%"></div></div><span class="h-val" id="hCpuVal">--</span></div>
+                                <div class="health-row"><span class="h-label">Memory</span><div class="h-bar"><div class="h-fill" id="hMemBar" style="width:0%"></div></div><span class="h-val" id="hMemVal">--</span></div>
+                                <div class="health-row"><span class="h-label">Disk</span><div class="h-bar"><div class="h-fill" id="hDiskBar" style="width:0%"></div></div><span class="h-val" id="hDiskVal">--</span></div>
+                            </div>
+                            <div class="health-devices" id="healthDevices">
+                                <div class="device-item"><span class="device-icon">🎧</span><span class="device-name">Buds Pro</span><span class="device-status off">—</span></div>
+                                <div class="device-item"><span class="device-icon">🎧</span><span class="device-name">OnePlus Nord Buds 3</span><span class="device-status off">—</span></div>
+                            </div>
+                            <div class="health-battery" id="healthBattery"><span class="battery-label">Battery</span><span class="battery-val" id="batteryVal">--%</span></div>
+                        </div>
+
+                        <div class="home-widget widget-music">
+                            <div class="widget-header"><h3>Now Playing</h3><span class="widget-mini" id="musicSource">—</span></div>
+                            <div class="music-now" id="musicNow">
+                                <div class="music-art" id="musicArt">♪</div>
+                                <div class="music-info">
+                                    <div class="music-title" id="musicTitle">Nothing playing</div>
+                                    <div class="music-artist" id="musicArtist">—</div>
+                                </div>
+                            </div>
+                            <div class="music-controls">
+                                <button class="mc-btn" id="mcPrev">⏮</button>
+                                <button class="mc-btn mc-play" id="mcPlay">▶</button>
+                                <button class="mc-btn" id="mcNext">⏭</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- CENTER COLUMN: HOLOGRAM -->
+                    <div class="home-col center">
+                        <div class="hologram-stage" id="hologramStage">
+                            <canvas id="hologramCanvas"></canvas>
+                            <div class="holo-status" id="holoStatus">FRIDAY ACTIVE</div>
+                        </div>
+
+                        <!-- STATUS BAR -->
+                        <div class="status-bar" id="statusBar">
+                            <div class="sb-item"><span class="sb-dot green"></span><span id="sbNetwork">Online</span></div>
+                            <div class="sb-item sb-icon">🔊<span id="sbVolume">--</span></div>
+                            <div class="sb-item sb-icon">🔋<span id="sbBattery">--</span></div>
+                            <div class="sb-item sb-icon">⚡<span id="sbCpu">--</span></div>
+                            <div class="sb-item sb-icon">🧠<span id="sbAi">AI</span></div>
+                        </div>
+
+                        <!-- MODES -->
+                        <div class="home-widget widget-modes">
+                            <div class="widget-header"><h3>Modes</h3></div>
+                            <div class="modes-grid" id="modesGrid">
+                                <button class="mode-btn" data-scene="coding"><span class="mode-icon">⌘</span>Coding</button>
+                                <button class="mode-btn" data-scene="movie"><span class="mode-icon">◈</span>Movie</button>
+                                <button class="mode-btn" data-scene="focus"><span class="mode-icon">◎</span>Focus</button>
+                                <button class="mode-btn" data-scene="meeting"><span class="mode-icon">▤</span>Meeting</button>
+                            </div>
+                        </div>
+
+                        <!-- TODAY'S TASKS -->
+                        <div class="home-widget widget-tasks">
+                            <div class="widget-header"><h3>Today's Tasks</h3><span class="widget-mini" id="tasksCount">0</span></div>
+                            <div class="tasks-mini-list" id="tasksMiniList">
+                                <div class="empty-tasks">No tasks — enjoy the day</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- RIGHT COLUMN: CONVERSATION -->
+                    <div class="home-col right">
+                        <div class="home-widget widget-convo">
+                            <div class="widget-header"><h3>Conversation</h3><span class="widget-mini">FRIDAY v4</span></div>
+                            <div class="conversation-messages" id="conversationMessages">
+                                <div class="msg msg-friday">Hello. I'm FRIDAY. Ask me anything.</div>
+                            </div>
+                            <div class="conversation-input-area">
+                                <input type="text" class="conversation-input" id="commandInput" placeholder="Type a command or ask..." autocomplete="off">
+                                <button class="send-btn" id="sendBtn">➤</button>
+                            </div>
+                        </div>
+
+                        <div class="home-widget widget-quick">
+                            <div class="widget-header"><h3>Quick Actions</h3></div>
+                            <div class="quick-grid" id="quickGrid">
+                                <button class="quick-btn" data-cmd="show my schedule"><span>▦</span>Schedule</button>
+                                <button class="quick-btn" data-cmd="what's playing"><span>♪</span>Music</button>
+                                <button class="quick-btn" data-cmd="show my notes"><span>▧</span>Notes</button>
+                                <button class="quick-btn" data-cmd="show my email"><span>✉</span>Email</button>
+                                <button class="quick-btn" data-cmd="search google for latest news"><span>◈</span>Search</button>
+                                <button class="quick-btn" data-cmd="check my memory"><span>◉</span>Memory</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ════════ SYSTEM VIEW ════════ -->
+            <section class="view" id="view-system">
+                <div class="view-header"><h2>System Health & Insights</h2><p class="view-sub">Real-time Mac monitoring</p></div>
+                <div class="system-grid">
+                    <div class="sys-card gauge-card" id="gaugeCpu"><canvas class="gauge-canvas" width="140" height="140"></canvas><div class="sys-card-label">CPU</div><div class="sys-card-val" id="sysCpuVal">--%</div></div>
+                    <div class="sys-card gauge-card" id="gaugeMem"><canvas class="gauge-canvas" width="140" height="140"></canvas><div class="sys-card-label">Memory</div><div class="sys-card-val" id="sysMemVal">--%</div></div>
+                    <div class="sys-card gauge-card" id="gaugeDisk"><canvas class="gauge-canvas" width="140" height="140"></canvas><div class="sys-card-label">Disk</div><div class="sys-card-val" id="sysDiskVal">--%</div></div>
+                    <div class="sys-card health-ring-card"><canvas class="health-ring-canvas" id="healthRingCanvas" width="140" height="140"></canvas><div class="sys-card-label">Health</div><div class="sys-card-val" id="sysHealthVal">--%</div></div>
+                </div>
+                <div class="system-details">
+                    <div class="sys-detail-row"><span>Network</span><span id="sysNetwork">--</span></div>
+                    <div class="sys-detail-row"><span>Battery</span><span id="sysBattery">--</span></div>
+                    <div class="sys-detail-row"><span>Uptime</span><span id="sysUptime">--</span></div>
+                    <div class="sys-detail-row"><span>Bluetooth Devices</span><span id="sysBt">--</span></div>
+                </div>
+            </section>
+
+            <!-- ════════ CALENDAR VIEW ════════ -->
+            <section class="view" id="view-calendar">
+                <div class="view-header"><h2>Calendar & Tasks</h2><p class="view-sub">Schedule management</p></div>
+                <div class="calendar-top">
+                    <div class="calendar-summary" id="calendarSummary">
+                        <span class="calendar-today-count" id="calTodayCount">0 events today</span>
+                        <span class="calendar-sync-status" id="calSyncStatus">Local</span>
+                    </div>
+                    <div class="calendar-actions">
+                        <button class="btn-primary" id="addCalendarEvent">+ Add Event</button>
+                        <button class="btn-ghost" id="syncCalendarBtn">⟳ Sync</button>
+                    </div>
+                </div>
+                <div class="calendar-list" id="calendarList"><div class="calendar-loading">Loading events...</div></div>
+                <div class="view-section-title">Active Tasks</div>
+                <div class="tasks-list" id="tasksList"><div class="empty-tasks">No tasks</div></div>
+                <button class="btn-ghost" id="taskAddBtn" style="margin-top:10px">+ Add Task</button>
+            </section>
+
+            <!-- ════════ FILES & SCENES VIEW ════════ -->
+            <section class="view" id="view-files">
+                <div class="view-header"><h2>Files & Scenes</h2><p class="view-sub">Workspaces and modes</p></div>
+                <div class="view-section-title">Modes</div>
+                <div class="scenes-grid" id="scenesGrid"><div class="scenes-loading">Loading scenes...</div></div>
+                <div class="view-section-title">Files</div>
+                <div class="files-list-view" id="filesListView"><div class="files-loading">Scanning folders...</div></div>
+            </section>
+
+            <!-- ════════ MEDIA VIEW ════════ -->
+            <section class="view" id="view-media">
+                <div class="view-header"><h2>Media & Web</h2><p class="view-sub">Music, web search, screen</p></div>
+                <div class="media-layout">
+                    <div class="media-card">
+                        <div class="view-section-title">Music Player</div>
+                        <div class="music-now large" id="mediaMusicNow">
+                            <div class="music-art large" id="mediaMusicArt">♪</div>
+                            <div class="music-info">
+                                <div class="music-title" id="mediaMusicTitle">Nothing playing</div>
+                                <div class="music-artist" id="mediaMusicArtist">—</div>
+                            </div>
+                        </div>
+                        <div class="music-controls large">
+                            <button class="mc-btn" id="mediaPrev">⏮</button>
+                            <button class="mc-btn mc-play" id="mediaPlay">▶</button>
+                            <button class="mc-btn" id="mediaNext">⏭</button>
+                        </div>
+                    </div>
+                    <div class="media-card">
+                        <div class="view-section-title">Web Search</div>
+                        <div class="web-search-row">
+                            <input type="text" class="web-input" id="webSearchInput" placeholder="Search Google...">
+                            <button class="btn-primary" id="webSearchBtn">Search</button>
+                        </div>
+                        <div class="web-results" id="webResults"><div class="empty-tasks">Search results appear here</div></div>
+                    </div>
+                </div>
+                <div class="media-card" style="margin-top:14px">
+                    <div class="view-section-title">Vision</div>
+                    <div class="vision-actions">
+                        <button class="btn-primary" id="visionCaptureBtn">📸 Capture Screen</button>
+                        <button class="btn-ghost" id="visionAnalyzeBtn">👁 Analyze</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ════════ NOTES & EMAIL VIEW ════════ -->
+            <section class="view" id="view-notes">
+                <div class="view-header"><h2>Notes & Email</h2><p class="view-sub">Your written world</p></div>
+                <div class="notes-email-layout">
+                    <div class="media-card">
+                        <div class="view-section-title">Notes</div>
+                        <div class="notes-tabs">
+                            <button class="notes-tab active" data-note-src="local">Local</button>
+                            <button class="notes-tab" data-note-src="apple">Apple</button>
+                            <button class="notes-tab" data-note-src="keep">Keep</button>
+                            <button class="notes-tab" id="notesAdd">+ New</button>
+                        </div>
+                        <div class="notes-form" id="notesForm" style="display:none">
+                            <input type="text" id="noteTitle" placeholder="Note title" class="note-input">
+                            <textarea id="noteBody" placeholder="Note content..." class="note-textarea" rows="3"></textarea>
+                            <button class="btn-primary" id="noteSaveBtn">Save</button>
+                        </div>
+                        <div class="notes-list" id="notesList"><div class="notes-loading">Loading notes...</div></div>
+                    </div>
+                    <div class="media-card">
+                        <div class="view-section-title">Email</div>
+                        <div class="notes-tabs">
+                            <button class="email-tab active" data-mail-src="apple">Apple Mail</button>
+                            <button class="email-tab" data-mail-src="gmail">Gmail</button>
+                        </div>
+                        <div class="email-list" id="emailList"><div class="email-loading">Loading mail...</div></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ════════ MEMORY VIEW ════════ -->
+            <section class="view" id="view-memory">
+                <div class="view-header"><h2>Memory Vault</h2><p class="view-sub">Everything FRIDAY remembers</p></div>
+                <div class="memory-search-row">
+                    <input type="text" class="memory-search-input" id="memorySearchInput" placeholder="Search memories...">
+                    <button class="btn-primary" id="memorySearchBtn">Search</button>
+                </div>
+                <div class="memory-results" id="memoryResults"><div class="memory-empty">Ask FRIDAY something and it will remember.</div></div>
+                <div class="view-section-title">Vault Notes</div>
+                <div class="memory-notes-list" id="memoryNotesList"><div class="memory-notes-loading">Loading vault notes...</div></div>
+            </section>
+
+            <!-- ════════ GIT & AUTOMATION VIEW ════════ -->
+            <section class="view" id="view-git">
+                <div class="view-header"><h2>Git & Automation</h2><p class="view-sub">Code control and scheduled tasks</p></div>
+                <div class="media-layout">
+                    <div class="media-card">
+                        <div class="view-section-title">Git Agent</div>
+                        <div class="git-command-row">
+                            <input type="text" class="git-command-input" id="gitCommandInput" placeholder="git status / git log / add...">
+                            <button class="btn-primary" id="gitRunBtn">Run</button>
+                        </div>
+                        <div class="git-toolbar">
+                            <button class="btn-ghost" id="gitStatusBtn">Status</button>
+                            <button class="btn-ghost" id="gitLogBtn">Log</button>
+                            <button class="btn-ghost" id="gitConfirmBtn">✓ Confirm</button>
+                        </div>
+                        <div class="git-output" id="gitOutput"><div class="git-empty">Run a git command to see output.</div></div>
+                    </div>
+                    <div class="media-card">
+                        <div class="view-section-title">Scheduler</div>
+                        <div class="git-toolbar">
+                            <button class="btn-ghost" id="schedulerRefresh">⟳ Refresh</button>
+                            <button class="btn-ghost" id="schedulerAdd">+ New Task</button>
+                        </div>
+                        <div class="scheduler-form" id="schedulerForm" style="display:none">
+                            <input type="text" id="schedName" placeholder="Task name" class="note-input">
+                            <div class="form-row">
+                                <select id="schedTriggerType" class="sched-select">
+                                    <option value="interval">Every (min)</option>
+                                    <option value="daily">Daily at</option>
+                                    <option value="hourly">Hourly at</option>
+                                </select>
+                                <input type="text" id="schedTriggerValue" placeholder="30m or 09:00" class="note-input" style="flex:1">
+                            </div>
+                            <select id="schedActionType" class="sched-select" style="width:100%;margin:5px 0">
+                                <option value="notify">Notify</option>
+                                <option value="open_app">Open App</option>
+                                <option value="run_scene">Run Scene</option>
+                                <option value="send_message">Send Message</option>
+                                <option value="run_command">Run Command</option>
+                            </select>
+                            <input type="text" id="schedActionConfig" placeholder="Action value" class="note-input">
+                            <button class="btn-primary" id="schedCreateBtn" style="margin-top:5px">Create Task</button>
+                        </div>
+                        <div class="scheduler-list" id="schedulerList"><div class="scheduler-empty">No scheduled tasks.</div></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ════════ SETTINGS & VOICE VIEW ════════ -->
+            <section class="view" id="view-settings">
+                <div class="view-header"><h2>Settings & Voice</h2><p class="view-sub">Control how FRIDAY talks and acts</p></div>
+                <div class="settings-layout">
+                    <div class="media-card">
+                        <div class="view-section-title">Voice Engine</div>
+                        <div class="setting-row"><span>Voice</span>
+                            <select id="voiceSelect" class="sched-select">
+                                <option value="siri">Siri</option>
+                                <option value="jarvis">Jarvis</option>
+                                <option value="gentleman">Gentleman</option>
+                            </select>
+                        </div>
+                        <div class="setting-row"><span>Speech</span>
+                            <label class="switch"><input type="checkbox" id="speakOn"><span class="slider"></span></label>
+                        </div>
+                        <div class="setting-row"><span>Wake Word</span>
+                            <input type="text" id="wakeWord" value="friday" class="note-input" style="max-width:140px">
+                        </div>
+                        <button class="btn-primary" id="voiceStartBtn" style="margin-top:10px">🎙 Start Voice Engine</button>
+                    </div>
+                    <div class="media-card">
+                        <div class="view-section-title">AI Brain</div>
+                        <div class="setting-row"><span>AI Status</span><span id="aiStatusVal">Checking...</span></div>
+                        <div class="setting-row"><span>API Key</span>
+                            <input type="password" id="omniKey" placeholder="sk-..." class="note-input" style="flex:1;max-width:220px">
+                        </div>
+                        <button class="btn-primary" id="omniSaveBtn" style="margin-top:10px">Save Key</button>
+                    </div>
+                    <div class="media-card">
+                        <div class="view-section-title">Clipboard</div>
+                        <div class="clipboard-list" id="clipboardList" style="max-height:180px"><div class="clipboard-empty">No history</div></div>
+                        <div class="clipboard-input-row" style="margin-top:8px">
+                            <input type="text" class="clipboard-input" id="clipboardInput" placeholder="Save as snippet...">
+                            <button class="btn-primary" id="clipboardSaveBtn">Save</button>
+                        </div>
+                    </div>
+                    <div class="media-card">
+                        <div class="view-section-title">Hologram Style</div>
+                        <p class="setting-hint">Pick how the center hologram animates.</p>
+                        <div class="preset-grid" id="holoPresets"></div>
+                    </div>
+                    <div class="media-card">
+                        <div class="view-section-title">Color Theme</div>
+                        <p class="setting-hint">Change the app accent color scheme.</p>
+                        <div class="theme-grid" id="themeSwatches"></div>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- ═══════════════════ SCRIPTS ═══════════════════ -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.4/socket.io.min.js"></script>
+    <script src="js/bridge.js"></script>
+    <script src="js/socket.js"></script>
+    <script src="js/hud.js"></script>
+    <script src="js/panels.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>

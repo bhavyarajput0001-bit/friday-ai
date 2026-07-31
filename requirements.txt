@@ -1,0 +1,12 @@
+flask>=3.0
+flask-socketio>=5.3
+eventlet>=0.35
+psutil>=5.9
+speechrecognition>=3.10
+deep-translator>=1.11
+pyaudio>=0.2.14
+playwright>=1.40,<1.50
+google-generativeai
+openai
+anthropic
+pywebview
