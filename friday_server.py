@@ -259,18 +259,34 @@ def api_status():
         "battery": psutil.sensors_battery().percent if psutil.sensors_battery() else None,
     }
 
+# ── Chat response collector (for /api/chat) ───────────────────────────────
+_chat_lock = threading.Lock()
+_chat_active = False
+_chat_collect = []
+
+
 @app.route("/api/chat", methods=["POST"])
 def api_chat():
     data = request.get_json() or {}
     text = data.get("text", "")
     if not text:
         return {"error": "text field required"}, 400
-    responses = []
-    def cb(msg):
-        responses.append(msg)
-    process_command(text)
-    process_with_brain(text, cb)
-    return {"response": responses[-1] if responses else "Processed", "interim": responses}
+    with _chat_lock:
+        global _chat_collect, _chat_active
+        _chat_active = True
+        _chat_collect = []
+        try:
+            process_command(text)
+            # Wait (bounded) for the real FRIDAY reply. Interim "Routing: …"
+            # headers arrive first; the final answer follows from the LLM.
+            for _ in range(150):  # up to 15s
+                if _chat_collect and not _chat_collect[-1].startswith("Routing:"):
+                    break
+                time.sleep(0.1)
+            return {"response": _chat_collect[-1] if _chat_collect else "Processed", "interim": list(_chat_collect)}
+        finally:
+            _chat_active = False
+            _chat_collect = []
 
 # ── Push-to-Talk ──────────────────────────────────────────────────────────────
 ptt_active = False
@@ -729,6 +745,11 @@ def push_message(text, sender="friday", emotion=None):
     socketio.emit("conversation:message", msg)
     if sender == "friday":
         tts(text)
+    try:
+        if _chat_active and sender == "friday":
+            _chat_collect.append(text)
+    except Exception:
+        pass
     return msg
 
 
@@ -1513,7 +1534,7 @@ def process_command(cmd, audio_obj=None):
             # Forward to Multi-LLM Brain instead of saying 'Command not recognized'
             def callback(text):
                 push_message(text, emotion=em)
-            
+
             threading.Thread(target=process_with_brain, args=(cmd, callback), daemon=True).start()
 
 
