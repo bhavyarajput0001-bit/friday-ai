@@ -2221,6 +2221,20 @@ def start_background_threads():
     proactive = ProactiveEngine(suggestion_handler, scene_callback=lambda s: None, store=store)
     proactive.start()
 
+    # Warm the OmniRoute gateway connection so first chat isn't cold
+    def _warm_omniroute():
+        try:
+            import omniroute
+            if omniroute.OMNIROUTE_KEY:
+                requests.get(
+                    f"{omniroute.OMNIROUTE_BASE}/models",
+                    headers={"Authorization": f"Bearer {omniroute.OMNIROUTE_KEY}"},
+                    timeout=5,
+                )
+        except Exception:
+            pass
+    threading.Thread(target=_warm_omniroute, daemon=True).start()
+
     # Start scheduler engine
     get_scheduler()
 

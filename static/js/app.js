@@ -164,22 +164,21 @@
         const scenes = await FridayBridge.getScenes();
         if (scenes) Panels.renderScenes(scenes);
 
-        // Calendar
-        const todayCal = await FridayBridge.getTodayCalendar();
-        if (todayCal && todayCal.events) Panels.renderCalendar(todayCal.events);
-        const calEvents = await FridayBridge.getCalendarEvents(7);
-        if (calEvents && calEvents.events) Panels.updateCalendarSyncStatus(calEvents.apple, calEvents.google);
-
-        // Tasks
-        const tasks = await FridayBridge.getTasks();
-        if (tasks && tasks.tasks) {
-            Panels.renderTasks(tasks.tasks);
-            Panels.renderTasksMini(tasks.tasks);
-        }
-
-        // Music
-        const track = await FridayBridge.getNowPlaying();
-        if (track) updateHomeMusic(track);
+        // Fire-and-forget parallel loads (music + calendar are slow; don't block)
+        Promise.all([
+            FridayBridge.getTodayCalendar(),
+            FridayBridge.getCalendarEvents(7),
+            FridayBridge.getTasks(),
+            FridayBridge.getNowPlaying(),
+        ]).then(([todayCal, calEvents, tasks, track]) => {
+            if (todayCal && todayCal.events) Panels.renderCalendar(todayCal.events);
+            if (calEvents && calEvents.events) Panels.updateCalendarSyncStatus(calEvents.apple, calEvents.google);
+            if (tasks && tasks.tasks) {
+                Panels.renderTasks(tasks.tasks);
+                Panels.renderTasksMini(tasks.tasks);
+            }
+            if (track) updateHomeMusic(track);
+        }).catch(() => {});
 
         // OmniRoute status
         const omni = await FridayBridge.getOmniRouteStatus();
