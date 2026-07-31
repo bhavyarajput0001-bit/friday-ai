@@ -547,6 +547,34 @@
             FridaySocket.emit('config:update', { wake_word: wakeWord.value || 'friday' });
         });
 
+        // Push-to-Talk (Right Option + Space) — status + toggle
+        const pttOn = document.getElementById('pttOn');
+        const pttStatus = document.getElementById('pttStatus');
+        function updatePttStatus(active) {
+            if (pttOn) pttOn.checked = active;
+            if (pttStatus) {
+                pttStatus.textContent = active ? 'armed — hold ⌥ + Space to talk' : 'off';
+                pttStatus.style.color = active ? 'var(--green)' : 'var(--dim)';
+            }
+        }
+        if (pttOn) {
+            pttOn.addEventListener('change', () => {
+                const on = pttOn.checked;
+                updatePttStatus(on);
+                if (on) {
+                    fetch('/api/voice/ptt', {
+                        method: 'POST', headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ action: 'ptt_hotkey', enable: true })
+                    }).catch(() => {});
+                }
+            });
+        }
+        // Probe the PTT helper on load
+        fetch('/api/voice/ptt', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'status' })
+        }).then(r => r.json()).then(d => updatePttStatus(d && d.ok)).catch(() => updatePttStatus(false));
+
         // Refresh music every 5s
         setInterval(() => { FridaySocket.emit('music:get'); }, 5000);
     }

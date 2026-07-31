@@ -3,14 +3,16 @@ from datetime import datetime
 from mac_automation import get_system_state
 
 class ProactiveEngine:
-    def __init__(self, suggestion_callback, scene_callback):
+    def __init__(self, suggestion_callback, scene_callback, store=None):
         self.callback = suggestion_callback
         self.scene_callback = scene_callback
+        self.store = store
         self._running = False
         self._thread = None
         self._last_suggestions = []
         self._greeted_today = False
         self._cooldown = {}
+        self._last_task_ids = set()
 
     def start(self):
         self._running = True
@@ -62,6 +64,50 @@ class ProactiveEngine:
                     else:
                         self._suggest(f"{greeting} It's {day}. Ready to work?", "greeting")
 
+                # ── Task responsibility: nag about due / in-progress tasks ──
+                tasks = []
+                if self.store:
+                    tasks = self.store.get("tasks", []) or []
+                pending = [t for t in tasks if t.get("status") in ("pending", "in_progress", "queued")]
+                now_ids = {t.get("id") for t in pending}
+                if now_ids and now_ids != self._last_task_ids and len(self._last_task_ids) > 0:
+                    new_ids = now_ids - self._last_task_ids
+                    fresh = [t for t in pending if t.get("id") in new_ids]
+                    if fresh:
+                        t = fresh[0]
+                        self._suggest(
+                            f"New task logged: “{t.get('title')}”. Want me to schedule it?",
+                            "task", {"type": "task", "task_id": t.get("id")},
+                        )
+                self._last_task_ids = now_ids
+
+                # Reminder for in-progress task (once per hour)
+                if pending:
+                    top = pending[0]
+                    task_key = f"task_{top.get('id')}_{datetime.now().hour}"
+                    if task_key not in self._cooldown and random.random() < 0.4:
+                        self._cooldown[task_key] = True
+                        self._suggest(
+                            f"Still open: “{top.get('title')}”. Say 'status' and I'll give you the full picture.",
+                            "task", {"type": "task", "task_id": top.get("id")},
+                        )
+
+                # Agenda awareness: upcoming item within the hour
+                if self.store:
+                    agenda = self.store.get("agenda", []) or []
+                    for item in agenda:
+                        try:
+                            t = datetime.strptime(item.get("time", ""), "%I:%M %p")
+                        except Exception:
+                            continue
+                        mins_until = (t.replace(year=datetime.now().year, month=datetime.now().month, day=datetime.now().day) - datetime.now()).total_seconds() / 60
+                        if 0 < mins_until <= 15:
+                            self._suggest(
+                                f"Coming up in {int(mins_until)}m: {item.get('title')}. Need anything prepped?",
+                                "agenda", {"type": "agenda", "agenda_id": item.get("id")},
+                            )
+                            break
+
                 # Time-based
                 if 12 <= hour <= 13:
                     self._suggest("It's lunch time!", "reminder", {"type": "suggest_scene", "scene": "focus"})
@@ -88,6 +134,7 @@ class ProactiveEngine:
                         "Say 'movie mode' to dim lights and open Plex.",
                         "I can search your files — just ask.",
                         "I remember clipboard history. Say 'show clipboard'.",
+                        "Hold ⌥ (Option) + Space and talk to me — instant push-to-talk.",
                     ]
                     self._suggest(random.choice(tips), "tip")
 

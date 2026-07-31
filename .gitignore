@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# OS
+.DS_Store
+
+# Editors
+.vscode/
+.idea/
+
+# Runtime data — contains local state, DBs, and secrets. Do not commit.
+data/*.db
+data/*.json
+data/screenshots/
+data/*.mp3
+data/*.wav
+
+# Compiled binaries
+ptt_hotkey
+*.o
+
+# Logs
+*.log

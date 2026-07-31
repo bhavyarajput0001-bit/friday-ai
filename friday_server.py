@@ -272,6 +272,110 @@ def api_chat():
     process_with_brain(text, cb)
     return {"response": responses[-1] if responses else "Processed", "interim": responses}
 
+# ── Push-to-Talk ──────────────────────────────────────────────────────────────
+ptt_active = False
+ptt_frames = []
+ptt_lock = threading.Lock()
+PTT_RATE = 16000
+PTT_CHANNELS = 1
+
+
+def ptt_start():
+    """Begin push-to-talk capture (hold ⌥+Space while speaking)."""
+    global ptt_active, ptt_frames
+    if not VOICE_OK:
+        push_message("Voice not available — install speechrecognition + pyaudio")
+        return {"ok": False, "error": "voice unavailable"}
+    with ptt_lock:
+        if ptt_active:
+            return {"ok": True, "already": True}
+        ptt_active = True
+        ptt_frames = []
+    push_message("Push-to-talk active — speak now.")
+    socketio.emit("voice:status", {"state": "listening"})
+    threading.Thread(target=_ptt_capture_loop, daemon=True).start()
+    return {"ok": True}
+
+
+def _ptt_capture_loop():
+    import pyaudio
+    p = pyaudio.PyAudio()
+    try:
+        stream = p.open(format=pyaudio.paInt16, channels=PTT_CHANNELS,
+                        rate=PTT_RATE, input=True, frames_per_buffer=2048)
+    except Exception as e:
+        print("[PTT] mic error:", e)
+        push_message("Microphone error")
+        return
+    try:
+        while True:
+            with ptt_lock:
+                if not ptt_active:
+                    break
+            try:
+                data = stream.read(2048, exception_on_overflow=False)
+                with ptt_lock:
+                    ptt_frames.append(data)
+                rms = audioop.rms(data, 2)
+                socketio.emit("voice:waveform", {"rms": rms})
+            except Exception:
+                break
+    finally:
+        stream.stop_stream(); stream.close(); p.terminate()
+
+
+def ptt_stop():
+    """Finish push-to-talk: stop capture, transcribe, process command."""
+    global ptt_active, ptt_frames
+    with ptt_lock:
+        if not ptt_active:
+            return {"ok": False, "error": "not active"}
+        ptt_active = False
+        frames = list(ptt_frames)
+        ptt_frames = []
+    socketio.emit("voice:status", {"state": "processing"})
+    time.sleep(0.4)
+    if not frames:
+        socketio.emit("voice:status", {"state": "idle"})
+        push_message("Didn't catch that")
+        return {"ok": True, "text": ""}
+    raw = b"".join(frames)
+    audio = sr.AudioData(raw, PTT_RATE, 2)
+    text = recognize_audio(audio)
+    if text:
+        push_message(text, sender="user")
+        threading.Thread(target=process_command, args=(text,), daemon=True).start()
+    else:
+        push_message("Didn't catch that")
+    socketio.emit("voice:status", {"state": "idle"})
+    return {"ok": True, "text": text}
+
+
+@app.route("/api/voice/ptt", methods=["POST"])
+def api_voice_ptt():
+    data = request.get_json() or {}
+    action = data.get("action", "")
+    if action == "start":
+        return ptt_start()
+    if action == "stop":
+        return ptt_stop()
+    if action == "status":
+        import os as _os
+        ptt_bin = Path(__file__).parent / "ptt_hotkey"
+        running = any("ptt_hotkey" in (p or "") for p in (_os.popen("pgrep -fl ptt_hotkey").read() or "").splitlines())
+        return {"ok": running and ptt_bin.exists(), "helper": str(ptt_bin)}
+    if action == "ptt_hotkey" and data.get("enable"):
+        try:
+            ptt_bin = Path(__file__).parent / "ptt_hotkey"
+            if not ptt_bin.exists():
+                return {"ok": False, "error": "helper not built"}
+            subprocess.Popen([str(ptt_bin)], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            return {"ok": True}
+        except Exception as e:
+            return {"ok": False, "error": str(e)}
+    return {"error": "unknown action"}, 400
+
+
 @app.route("/api/tasks", methods=["GET", "POST"])
 def api_tasks():
     if request.method == "POST":
@@ -2090,11 +2194,19 @@ def start_background_threads():
     def suggestion_handler(suggestion):
         socketio.emit("proactive:suggestion", suggestion)
     global proactive
-    proactive = ProactiveEngine(suggestion_handler, scene_callback=lambda s: None)
+    proactive = ProactiveEngine(suggestion_handler, scene_callback=lambda s: None, store=store)
     proactive.start()
 
     # Start scheduler engine
     get_scheduler()
+
+    # Launch push-to-talk hotkey helper (Right Option + Space)
+    try:
+        ptt_bin = Path(__file__).parent / "ptt_hotkey"
+        if ptt_bin.exists():
+            subprocess.Popen([str(ptt_bin)], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    except Exception as e:
+        print("[PTT] launch error:", e)
 
 
 if __name__ == "__main__":
