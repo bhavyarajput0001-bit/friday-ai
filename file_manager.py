@@ -81,6 +81,9 @@ def get_file_counts():
         counts[label.lower()] = {"count": sum(info["by_category"].values()), "label": "Files"}
     coding_path = HOME / "Downloads" / "Coding"
     if coding_path.exists():
-        proj_count = len([d for d in coding_path.iterdir() if d.is_dir() and not d.name.startswith(".")])
+        try:
+            proj_count = len([d for d in coding_path.iterdir() if d.is_dir() and not d.name.startswith(".")])
+        except OSError:
+            proj_count = 0
         counts["coding_projects"] = {"count": proj_count, "label": "Projects"}
     return counts
