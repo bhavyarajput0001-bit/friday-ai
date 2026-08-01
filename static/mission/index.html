@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FRIDAY — Mission Control</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="mission/mission.css">
+</head>
+<body>
+<div class="mc" id="mc">
+
+  <!-- ═══════════════ HEADER NAV ═══════════════ -->
+  <header class="mc-header">
+    <div class="mc-brand">
+      <div class="mc-brand-core"></div>
+      <span class="mc-brand-name">FRIDAY</span>
+      <span class="mc-brand-sub">MISSION&nbsp;CONTROL</span>
+    </div>
+    <nav class="mc-nav" id="mcNav">
+      <button class="mc-nav-item active" data-view="home">Home</button>
+      <button class="mc-nav-item" data-view="memory">Memory</button>
+      <button class="mc-nav-item" data-view="activity">Activity</button>
+      <button class="mc-nav-item" data-view="utilities">Utilities</button>
+      <button class="mc-nav-item" data-view="integrations">Integrations</button>
+      <button class="mc-nav-item" data-view="settings">Settings</button>
+    </nav>
+    <div class="mc-head-actions">
+      <span class="mc-pill mc-pill-online" id="mcOnline"><i></i><span id="mcOnlineText">ONLINE</span></span>
+      <button class="mc-icon-btn" title="Notifications"><span class="mc-dot" id="mcNotifDot"></span>◔</button>
+      <button class="mc-icon-btn" title="Settings">⚙</button>
+      <div class="mc-avatar">FR</div>
+    </div>
+  </header>
+
+  <!-- ═══════════════ MAIN GRID ═══════════════ -->
+  <main class="mc-body">
+
+    <!-- ── LEFT: CONTROL CENTER ── -->
+    <aside class="mc-left">
+      <section class="mc-card mc-personality">
+        <div class="mc-card-head"><span class="mc-card-title">PERSONALITY</span><span class="mc-card-chip">AI</span></div>
+        <div class="mc-pills" id="mcPersonality">
+          <button class="mc-pill-btn active" data-mode="assistant">Assistant</button>
+          <button class="mc-pill-btn" data-mode="creative">Creative</button>
+          <button class="mc-pill-btn" data-mode="coding">Coding</button>
+          <button class="mc-pill-btn" data-mode="research">Research</button>
+        </div>
+        <div class="mc-switches">
+          <label class="mc-switch-row"><span>Proactive</span><input type="checkbox" id="mcProactive" checked></label>
+          <label class="mc-switch-row"><span>Auto-voice</span><input type="checkbox" id="mcAutoVoice" checked></label>
+          <label class="mc-switch-row"><span>Push-to-talk</span><input type="checkbox" id="mcPtt" checked></label>
+        </div>
+      </section>
+
+      <section class="mc-card mc-workspace">
+        <div class="mc-card-head"><span class="mc-card-title">WORKSPACE</span></div>
+        <textarea id="mcWorkspace" placeholder="Workspace instructions / global prompt…" spellcheck="false"></textarea>
+        <button class="mc-btn mc-btn-primary" id="mcApplyWs">APPLY</button>
+      </section>
+    </aside>
+
+    <!-- ── CENTER: AI CORE ── -->
+    <section class="mc-center">
+      <div class="mc-core" id="mcCore">
+        <canvas id="mcCoreCanvas"></canvas>
+        <div class="mc-core-label">
+          <span class="mc-core-name" id="mcCoreName">FRIDAY</span>
+          <span class="mc-core-state" id="mcCoreState">STANDBY</span>
+        </div>
+      </div>
+
+      <!-- AI controls -->
+      <div class="mc-ai-controls">
+        <button class="mc-ai-ctrl" id="mcListen">
+          <span class="mc-ai-ico">◉</span><span class="mc-ai-txt">Listen</span>
+        </button>
+        <button class="mc-ai-ctrl" id="mcCamera">
+          <span class="mc-ai-ico">◈</span><span class="mc-ai-txt">Camera</span>
+        </button>
+        <button class="mc-ai-ctrl" id="mcScreen">
+          <span class="mc-ai-ico">▣</span><span class="mc-ai-txt">Screen / Vision</span>
+        </button>
+      </div>
+
+      <!-- Command line -->
+      <div class="mc-cmdline">
+        <span class="mc-cmd-prompt">❯</span>
+        <input id="mcCmdInput" type="text" placeholder="Command FRIDAY…" autocomplete="off" spellcheck="false">
+        <button class="mc-btn mc-btn-ghost" id="mcCmdSend">EXECUTE</button>
+      </div>
+      <div class="mc-core-log" id="mcCoreLog"><div class="mc-log-empty">FRIDAY awaiting command…</div></div>
+    </section>
+
+    <!-- ── RIGHT: SYSTEM WIDGETS ── -->
+    <aside class="mc-right">
+      <section class="mc-card mc-sysstatus">
+        <div class="mc-card-head"><span class="mc-card-title">SYSTEM STATUS</span></div>
+        <div class="mc-bars" id="mcSysBars">
+          <div class="mc-bar-row"><span class="mc-bar-label">Memory</span><div class="mc-bar"><i style="width:0%" id="mcBarMem"></i></div></div>
+          <div class="mc-bar-row"><span class="mc-bar-label">Processing</span><div class="mc-bar"><i style="width:0%" id="mcBarCpu"></i></div></div>
+          <div class="mc-bar-row"><span class="mc-bar-label">Network</span><div class="mc-bar"><i style="width:0%" id="mcBarNet"></i></div></div>
+        </div>
+      </section>
+
+      <section class="mc-card mc-gauges">
+        <div class="mc-card-head"><span class="mc-card-title">PERFORMANCE</span></div>
+        <div class="mc-gauge-row">
+          <div class="mc-gauge"><svg viewBox="0 0 80 80"><path class="mc-gauge-track" d="M 12 62 A 28 28 0 1 1 68 62"/><path class="mc-gauge-arc" id="mcGaugeCpu" d="M 12 62 A 28 28 0 1 1 68 62"/></svg><div class="mc-gauge-val"><span id="mcGaugeCpuV">0%</span><em>CPU</em></div></div>
+          <div class="mc-gauge"><svg viewBox="0 0 80 80"><path class="mc-gauge-track" d="M 12 62 A 28 28 0 1 1 68 62"/><path class="mc-gauge-arc" id="mcGaugeMem" d="M 12 62 A 28 28 0 1 1 68 62"/></svg><div class="mc-gauge-val"><span id="mcGaugeMemV">0%</span><em>MEM</em></div></div>
+          <div class="mc-gauge"><svg viewBox="0 0 80 80"><path class="mc-gauge-track" d="M 12 62 A 28 28 0 1 1 68 62"/><path class="mc-gauge-arc" id="mcGaugeBat" d="M 12 62 A 28 28 0 1 1 68 62"/></svg><div class="mc-gauge-val"><span id="mcGaugeBatV">0%</span><em>BATT</em></div></div>
+        </div>
+      </section>
+
+      <section class="mc-card mc-memory">
+        <div class="mc-card-head"><span class="mc-card-title">MEMORY VAULT</span></div>
+        <div class="mc-mem-circle"><svg viewBox="0 0 90 90"><circle class="mc-mem-track" cx="45" cy="45" r="38"/><circle class="mc-mem-fill" id="mcMemFill" cx="45" cy="45" r="38"/></svg><div class="mc-mem-val"><span id="mcMemV">0%</span><em>USED</em></div></div>
+      </section>
+    </aside>
+  </main>
+
+  <!-- ═══════════════ WORKSPACE GRID ═══════════════ -->
+  <section class="mc-works">
+    <div class="mc-works-card"><div class="mc-card-head"><span class="mc-card-title">TASKS</span></div><div class="mc-works-body" id="mcTasks"></div></div>
+    <div class="mc-works-card"><div class="mc-card-head"><span class="mc-card-title">ACTIVITY LOG</span></div><div class="mc-works-body mc-log" id="mcActivity"></div></div>
+    <div class="mc-works-card"><div class="mc-card-head"><span class="mc-card-title">AI THOUGHTS</span></div><div class="mc-works-body mc-log" id="mcThoughts"></div></div>
+    <div class="mc-works-card"><div class="mc-card-head"><span class="mc-card-title">NOTES</span></div><div class="mc-works-body" id="mcNotes"></div></div>
+  </section>
+
+  <!-- ═══════════════ FOOTER STATUS BAR ═══════════════ -->
+  <footer class="mc-footer">
+    <span id="mcFootLeft">SYSTEMS NOMINAL</span>
+    <span class="mc-foot-mid" id="mcFootClock">--:--:--</span>
+    <span id="mcFootRight">FRIDAY OS v4.0</span>
+  </footer>
+</div>
+
+<div class="mc-modal" id="mcModal">
+  <div class="mc-modal-box">
+    <div class="mc-modal-head"><span id="mcModalTitle">FRIDAY</span><button class="mc-icon-btn" id="mcModalClose">✕</button></div>
+    <div class="mc-modal-body" id="mcModalBody"></div>
+  </div>
+</div>
+
+<script src="mission/mission.js"></script>
+</body>
+</html>

@@ -231,7 +231,15 @@ socketio = SocketIO(app, cors_allowed_origins="*", async_mode="eventlet")
 # Serve index.html
 @app.route("/")
 def index():
+    return send_from_directory("static/mission", "index.html")
+
+@app.route("/dashboard")
+def dashboard():
     return send_from_directory("static", "index.html")
+
+@app.route("/screenshots/<path:filename>")
+def screenshots(filename):
+    return send_from_directory("data/screenshots", filename)
 
 @app.route("/pwa/")
 @app.route("/pwa/<path:filename>")
