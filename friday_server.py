@@ -2247,10 +2247,12 @@ def start_background_threads():
     # Start scheduler engine
     get_scheduler()
 
-    # Launch push-to-talk hotkey helper (Right Option + Space)
+    # Launch push-to-talk hotkey helper (Right Option + Space) if not already running
     try:
         ptt_bin = Path(__file__).parent / "ptt_hotkey"
-        if ptt_bin.exists():
+        import os as _os
+        already = any("ptt_hotkey" in (p or "") for p in (_os.popen("pgrep -fl ptt_hotkey").read() or "").splitlines())
+        if ptt_bin.exists() and not already:
             subprocess.Popen([str(ptt_bin)], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     except Exception as e:
         print("[PTT] launch error:", e)

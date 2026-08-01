@@ -287,6 +287,25 @@ class FridayAPI:
             subprocess.Popen(["osascript", "-e", f'display notification "{msg}" with title "{title}" sound name "default"'])
         except: pass
 
+    # ── Window controls (frameless) ──
+    def win_close(self):
+        try:
+            import webview as _w
+            _w.windows[0].destroy()
+        except Exception: pass
+
+    def win_min(self):
+        try:
+            import webview as _w
+            _w.windows[0].minimize()
+        except Exception: pass
+
+    def win_max(self):
+        try:
+            import webview as _w
+            _w.windows[0].toggle_fullscreen()
+        except Exception: pass
+
     # ── Notes bridge ──
     def get_notes_list(self):
         return json.dumps(get_notes().all_notes())
@@ -357,20 +376,21 @@ class FridayAPI:
 # ── Launch ──────────────────────────────────────────────────────
 def main():
     api = FridayAPI()
-    index_path = str(STATIC / "index.html")
+    index_path = str(STATIC / "mission" / "index.html")
 
     window = webview.create_window(
         "FRIDAY AI",
         index_path,
         js_api=api,
-        width=1400, height=900,
-        frameless=False,
+        width=1440, height=920,
+        frameless=True,
         easy_drag=False,
-        background_color="#060a13",
+        background_color="#06111D",
     )
 
     def _init():
-        time.sleep(1.5)
+        # Boot the Flask core in the background; the UI is already visible
+        # via the local file (dedicated-app feel, no localhost address).
         ready = ensure_flask()
         if ready:
             try:
@@ -379,7 +399,7 @@ def main():
                 pass
         else:
             try:
-                window.evaluate_js("document.getElementById('loadingText') && (document.getElementById('loadingText').textContent = 'Cloud features unavailable — running offline')")
+                window.evaluate_js("window.dispatchEvent(new CustomEvent('friday:offline'))")
             except: pass
 
     threading.Thread(target=_init, daemon=True).start()
