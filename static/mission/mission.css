@@ -493,6 +493,49 @@ button { font-family: inherit; color: inherit; background: none; border: none; c
 .dragging { opacity: 0.6; transform: scale(1.02); }
 .drop-z { outline: 2px dashed var(--border-strong); border-radius: var(--r); }
 
+/* ═══ UI PREFERENCES ═══ */
+.ui-card {
+  display: flex; align-items: center; gap: 14px;
+  padding: 12px 14px; border-radius: 12px;
+  border: 1px solid var(--border); background: var(--glass);
+  margin-bottom: 10px; transition: all 0.2s;
+}
+.ui-card:hover { border-color: var(--border-strong); }
+.ui-card.active { border-color: var(--success); background: var(--success-dim); box-shadow: inset 0 0 0 1px rgba(105,255,168,0.2); }
+.ui-prev {
+  width: 92px; height: 58px; border-radius: 8px; flex-shrink: 0;
+  background: var(--bg-1); border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  position: relative; cursor: pointer; overflow: hidden;
+  font-size: 22px; color: var(--accent);
+  transition: transform 0.2s;
+}
+.ui-prev:hover { transform: scale(1.03); }
+.ui-tag {
+  position: absolute; bottom: 4px; left: 50%; transform: translateX(-50%);
+  font-size: 8px; letter-spacing: 1px; padding: 1px 6px; border-radius: 4px;
+  background: var(--bg-2); color: var(--text-faint); border: 1px solid var(--border);
+  text-transform: uppercase;
+}
+.ui-tag.current { color: var(--accent); border-color: var(--accent-dim); }
+.ui-tag.legacy { color: var(--warning); border-color: rgba(255,200,87,0.3); }
+.ui-tag.alternate { color: var(--text-dim); }
+.ui-meta { flex: 1; min-width: 0; }
+.ui-name { display: flex; align-items: baseline; gap: 8px; margin-bottom: 3px; }
+.ui-name b { font-size: 14px; font-weight: 600; }
+.ui-name em { font-style: normal; font-size: 11px; color: var(--text-faint); }
+.ui-desc { font-size: 11.5px; color: var(--text-dim); line-height: 1.5; }
+.ui-act { flex-shrink: 0; }
+.ui-btn {
+  padding: 8px 16px; border-radius: 9px;
+  font-size: 12px; font-weight: 600; letter-spacing: 0.5px;
+  border: 1px solid var(--border-strong); color: var(--accent);
+  background: var(--accent-dim); transition: all 0.2s;
+}
+.ui-btn:hover { background: rgba(69,217,255,0.35); transform: scale(1.02); }
+.ui-btn:active { transform: scale(0.98); }
+.ui-btn.active { color: var(--success); border-color: var(--success); background: var(--success-dim); cursor: default; }
+
 @media (max-width: 1200px) {
   .sidebar { width: 250px; }
   .center { padding: 12px 16px; }

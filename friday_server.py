@@ -222,16 +222,87 @@ cfg = store.get("cfg", DEFAULT_CFG.copy())
 custom_cmds = store.get("custom_cmds", {})
 
 # ══════════════════════════════════════════════════════════════════════════════
+#  UI REGISTRY — every FRIDAY interface that can be previewed & switched
+#  ══════════════════════════════════════════════════════════════════════════════
+UI_REGISTRY = [
+    {
+        "id": "mission",
+        "name": "FRIDAY OS",
+        "version": "2.0",
+        "desc": "Apple-grade AI operating system — deep-navy glass, 60fps AI core, modular workspace.",
+        "path": "/",
+        "kind": "current",
+    },
+    {
+        "id": "legacy",
+        "name": "Legacy Dashboard",
+        "version": "1.x",
+        "desc": "The original FRIDAY HUD dashboard — everything panel, clipboards, automations.",
+        "path": "/dashboard",
+        "kind": "legacy",
+    },
+    {
+        "id": "pwa",
+        "name": "PWA Shell",
+        "version": "1.x",
+        "desc": "Progressive web app shell for installing FRIDAY as a standalone web app.",
+        "path": "/pwa/",
+        "kind": "alternate",
+    },
+]
+
+def get_active_ui():
+    """Active UI id, persisted in memory store."""
+    active = store.get("active_ui", "mission")
+    if active not in {u["id"] for u in UI_REGISTRY}:
+        active = "mission"
+    return active
+
+def set_active_ui(ui_id):
+    if ui_id not in {u["id"] for u in UI_REGISTRY}:
+        return False
+    store["active_ui"] = ui_id
+    save_memory()
+    return True
+
+
+# ══════════════════════════════════════════════════════════════════════════════
 #  FLASK APP
 # ══════════════════════════════════════════════════════════════════════════════
 app = Flask(__name__, static_folder="static", static_url_path="")
 app.config["SECRET_KEY"] = "friday-jarvis-2024"
 socketio = SocketIO(app, cors_allowed_origins="*", async_mode="eventlet")
 
-# Serve index.html
+# Serve the active UI at /
 @app.route("/")
 def index():
-    return send_from_directory("static/mission", "index.html")
+    active = get_active_ui()
+    if active == "mission":
+        return send_from_directory("static/mission", "index.html")
+    if active == "pwa":
+        return send_from_directory("static/pwa", "index.html")
+    return send_from_directory("static", "index.html")
+
+# ── UI Registry API ──
+@app.route("/api/ui")
+def api_ui_list():
+    active = get_active_ui()
+    uis = []
+    for u in UI_REGISTRY:
+        item = dict(u)
+        item["active"] = (u["id"] == active)
+        uis.append(item)
+    return {"uis": uis, "active": active}
+
+@app.route("/api/ui/activate", methods=["POST"])
+def api_ui_activate():
+    data = request.get_json() or {}
+    ui_id = data.get("id", "")
+    if set_active_ui(ui_id):
+        u = next((x for x in UI_REGISTRY if x["id"] == ui_id), {})
+        socketio.emit("ui:state", {"active": ui_id, "path": u.get("path", "/")})
+        return {"ok": True, "active": ui_id, "path": u.get("path", "/")}
+    return {"ok": False, "error": "unknown ui id"}, 400
 
 @app.route("/dashboard")
 def dashboard():

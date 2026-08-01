@@ -556,6 +556,7 @@ function setView(v) {
     automation: ['AUTOMATION', `<div class="card" style="margin:20px"><div class="card-h"><span>SCHEDULED AUTOMATION</span></div><div class="wbody" id="autoView" style="max-height:50vh"></div></div>`],
     integrations: ['INTEGRATIONS', `<div class="card" style="margin:20px"><div class="card-h"><span>CONNECTED SERVICES</span></div><div class="wbody" id="intView" style="max-height:50vh"></div></div>`],
     agents: ['AGENTS', `<div class="card" style="margin:20px"><div class="card-h"><span>SUB-AGENTS</span></div><div class="wbody"><div class="empty">FRIDAY orchestrates all agents</div></div></div>`],
+    ui: ['UI PREFERENCES', `<div class="card" style="margin:20px"><div class="card-h"><span>INTERFACE THEMES</span></div><div class="wbody" id="uiView" style="max-height:50vh"></div></div>`],
     settings: ['SETTINGS', `<div class="card" style="margin:20px"><div class="card-h"><span>CONFIGURATION</span></div><div class="wbody" id="setView" style="max-height:50vh"></div></div>`],
   };
   const [title, html] = map[v] || map.home;
@@ -564,6 +565,7 @@ function setView(v) {
   if (v === 'tasks') renderTaskView();
   if (v === 'automation') renderAutoView();
   if (v === 'integrations') renderIntView();
+  if (v === 'ui') renderUIView();
   if (v === 'settings') renderSetView();
 }
 
@@ -619,6 +621,59 @@ function renderSetView() {
     .filter(k => c[k] !== undefined)
     .map(k => `<div class="item"><span class="ic">⚙</span><span class="tx">${k}</span><span class="st">${String(c[k])}</span></div>`).join('');
   el.innerHTML = rows || '<div class="empty">No config</div>';
+}
+
+async function renderUIView() {
+  const el = $('#uiView');
+  if (!el) return;
+  try {
+    const r = await fetch('/api/ui');
+    const d = await r.json();
+    const uis = d.uis || [];
+    if (!uis.length) { el.innerHTML = '<div class="empty">No interfaces registered</div>'; return; }
+    el.innerHTML = uis.map(u => `
+      <div class="ui-card${u.active ? ' active' : ''}" data-ui="${u.id}">
+        <div class="ui-prev" data-ui="${u.id}">
+          <div class="ui-ph">${u.kind === 'current' ? '◈' : u.kind === 'legacy' ? '▤' : '⌁'}</div>
+          <span class="ui-tag ${u.kind}">${u.kind}</span>
+        </div>
+        <div class="ui-meta">
+          <div class="ui-name"><b>${escapeHtml(u.name)}</b> <em>v${escapeHtml(u.version)}</em></div>
+          <div class="ui-desc">${escapeHtml(u.desc)}</div>
+        </div>
+        <div class="ui-act">
+          ${u.active
+            ? '<button class="ui-btn active" disabled>● ACTIVE</button>'
+            : '<button class="ui-btn switch" data-switch="' + u.id + '">◉ SWITCH</button>'}
+        </div>
+      </div>`).join('');
+    $$('.ui-btn.switch', el).forEach(b => b.addEventListener('click', async () => {
+      const id = b.dataset.switch;
+      b.textContent = '…';
+      try {
+        const rr = await fetch('/api/ui/activate', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id }),
+        });
+        const dd = await rr.json();
+        if (dd.ok) {
+          notif(`Switched interface → ${dd.active}`, 'success');
+          setTimeout(() => location.reload(), 600);
+        } else {
+          b.textContent = '◉ SWITCH';
+          notif('Switch failed', 'err');
+        }
+      } catch { b.textContent = '◉ SWITCH'; notif('Switch failed', 'err'); }
+    }));
+    $$('.ui-prev', el).forEach(p => p.addEventListener('click', () => {
+      const id = p.dataset.ui;
+      const target = (uis.find(u => u.id === id) || {}).path || '/';
+      openModal('PREVIEW — ' + id, `<iframe src="${target}" style="width:100%;height:520px;border:1px solid var(--border);border-radius:10px;background:var(--bg-0)"></iframe>
+        <div style="margin-top:12px;font-size:12px;color:var(--text-dim)">Previewing <b>${target}</b>. Switch to make it the active interface.</div>`);
+    }));
+  } catch {
+    el.innerHTML = '<div class="empty">UI registry unavailable</div>';
+  }
 }
 
 /* ══════════════════════════════════════════════════════════════════════════════
