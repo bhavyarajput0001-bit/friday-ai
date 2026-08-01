@@ -9,7 +9,7 @@ from pathlib import Path
 from datetime import datetime
 
 # ── Flask + SocketIO ──────────────────────────────────────────────────────────
-from flask import Flask, send_from_directory, request
+from flask import Flask, send_from_directory, send_file, request
 from flask_socketio import SocketIO, emit
 import psutil
 
@@ -230,7 +230,15 @@ UI_REGISTRY = [
         "name": "FRIDAY OS",
         "version": "2.0",
         "desc": "Apple-grade AI operating system — deep-navy glass, 60fps AI core, modular workspace.",
-        "path": "/",
+        "path": "/ui/mission/",
+        "kind": "current",
+    },
+    {
+        "id": "glass",
+        "name": "FRIDAY Glass",
+        "version": "1.0",
+        "desc": "Light glassmorphism theme — frosted translucent cards on a soft gradient, airy and calm.",
+        "path": "/ui/glass/",
         "kind": "current",
     },
     {
@@ -251,15 +259,23 @@ UI_REGISTRY = [
     },
 ]
 
+def all_uis():
+    """Static registry + any UIs created at runtime (persisted in memory store)."""
+    uis = [dict(u) for u in UI_REGISTRY]
+    for cu in store.get("custom_uis", []):
+        if not any(u["id"] == cu.get("id") for u in uis):
+            uis.append(dict(cu))
+    return uis
+
 def get_active_ui():
     """Active UI id, persisted in memory store."""
     active = store.get("active_ui", "mission")
-    if active not in {u["id"] for u in UI_REGISTRY}:
+    if active not in {u["id"] for u in all_uis()}:
         active = "mission"
     return active
 
 def set_active_ui(ui_id):
-    if ui_id not in {u["id"] for u in UI_REGISTRY}:
+    if ui_id not in {u["id"] for u in all_uis()}:
         return False
     store["active_ui"] = ui_id
     save_memory()
@@ -279,18 +295,46 @@ def index():
     active = get_active_ui()
     if active == "mission":
         return send_from_directory("static/mission", "index.html")
+    if active == "glass":
+        return send_from_directory("static/glass", "index.html")
     if active == "pwa":
         return send_from_directory("static/pwa", "index.html")
     return send_from_directory("static", "index.html")
+
+# Direct per-UI preview routes (serve a specific UI regardless of active state)
+@app.route("/ui/ui-module.js")
+def ui_module_js():
+    return send_from_directory("static/ui", "ui-module.js")
+
+@app.route("/ui/ui-module.css")
+def ui_module_css():
+    return send_from_directory("static/ui", "ui-module.css")
+
+@app.route("/ui/<ui_id>/")
+@app.route("/ui/<ui_id>/<path:filename>")
+def ui_preview(ui_id, filename="index.html"):
+    ui_dir = APP_DIR / "static" / ui_id
+    if not ui_dir.exists():
+        return {"ok": False, "error": f"ui '{ui_id}' not found"}, 404
+    return send_from_directory(ui_dir, filename)
+
+# ── UI thumbnails (live capture or fallback icon) ──
+@app.route("/api/ui/thumb/<ui_id>")
+def api_ui_thumb(ui_id):
+    thumb = DATA_DIR / "ui-thumbs" / f"{ui_id}.png"
+    if thumb.exists():
+        return send_file(thumb, mimetype="image/png")
+    return {"ok": False, "error": "no thumbnail"}, 404
 
 # ── UI Registry API ──
 @app.route("/api/ui")
 def api_ui_list():
     active = get_active_ui()
     uis = []
-    for u in UI_REGISTRY:
+    for u in all_uis():
         item = dict(u)
         item["active"] = (u["id"] == active)
+        item["thumb"] = f"/api/ui/thumb/{u['id']}"
         uis.append(item)
     return {"uis": uis, "active": active}
 
@@ -299,10 +343,82 @@ def api_ui_activate():
     data = request.get_json() or {}
     ui_id = data.get("id", "")
     if set_active_ui(ui_id):
-        u = next((x for x in UI_REGISTRY if x["id"] == ui_id), {})
+        u = next((x for x in all_uis() if x["id"] == ui_id), {})
         socketio.emit("ui:state", {"active": ui_id, "path": u.get("path", "/")})
         return {"ok": True, "active": ui_id, "path": u.get("path", "/")}
     return {"ok": False, "error": "unknown ui id"}, 400
+
+@app.route("/api/ui/create", methods=["POST"])
+def api_ui_create():
+    """Register a new UI. Supports scaffolding a blank design from a template."""
+    data = request.get_json() or {}
+    ui_id = (data.get("id") or "").strip().lower().replace(" ", "_")
+    name = (data.get("name") or ui_id or "New UI").strip()
+    desc = (data.get("desc") or "Custom FRIDAY interface").strip()
+    kind = data.get("kind", "current")
+    template = data.get("template", "blank")
+
+    if not ui_id or not ui_id.isidentifier():
+        return {"ok": False, "error": "invalid id — use letters, numbers, underscore"}, 400
+    if any(u["id"] == ui_id for u in all_uis()):
+        return {"ok": False, "error": "ui id already exists"}, 409
+
+    # Scaffold a new static/<id>/ folder from a template
+    target_dir = APP_DIR / "static" / ui_id
+    try:
+        if not target_dir.exists():
+            target_dir.mkdir(parents=True, exist_ok=True)
+            if template == "glass":
+                src = APP_DIR / "static" / "glass"
+            elif template == "mission":
+                src = APP_DIR / "static" / "mission"
+            else:
+                src = None
+            if src and src.exists():
+                import shutil
+                for f in src.iterdir():
+                    if f.name in ("index.html", "glass.css", "mission.css", "mission.js"):
+                        shutil.copy2(f, target_dir / f.name)
+                # rewrite the CSS <link> to reference the local copy, keep mission.js shared
+                css_link = src.name + ".css"
+                if css_link == "glass.css" and (target_dir / "glass.css").exists():
+                    css_link = "glass.css"
+                elif css_link == "mission.css" and (target_dir / "mission.css").exists():
+                    css_link = "mission.css"
+                html_path = target_dir / "index.html"
+                if html_path.exists():
+                    txt = html_path.read_text()
+                    if "href=\"glass/glass.css\"" in txt:
+                        txt = txt.replace('href="glass/glass.css"', 'href="' + css_link + '"')
+                    elif "href=\"mission/mission.css\"" in txt:
+                        txt = txt.replace('href="mission/mission.css"', 'href="' + css_link + '"')
+                    txt = txt.replace('src="mission/mission.js"', 'src="/mission/mission.js"')
+                    html_path.write_text(txt)
+            else:
+                # blank minimal page that still auto-links the UI module
+                (target_dir / "index.html").write_text(
+                    "<!DOCTYPE html><html><head><meta charset='UTF-8'>"
+                    "<title>" + name + "</title>"
+                    "<link rel='stylesheet' href='/ui/ui-module.css'>"
+                    "</head><body style='background:#0B1625;color:#E8F1FB;"
+                    "font-family:system-ui;display:flex;align-items:center;"
+                    "justify-content:center;height:100vh;margin:0'>"
+                    "<div style='text-align:center'><h1>" + name + "</h1>"
+                    "<p style='opacity:.6'>New FRIDAY interface — customize static/" + ui_id + "/index.html</p></div>"
+                    "<script src='/ui/ui-module.js'></script></body></html>")
+    except Exception as e:
+        return {"ok": False, "error": f"scaffold failed: {e}"}, 500
+
+    entry = {
+        "id": ui_id, "name": name, "version": "0.1",
+        "desc": desc, "path": f"/ui/{ui_id}/", "kind": kind,
+    }
+    custom = store.get("custom_uis", [])
+    custom.append(entry)
+    store["custom_uis"] = custom
+    save_memory()
+    socketio.emit("ui:registry", {"added": ui_id, "uis": all_uis()})
+    return {"ok": True, "ui": entry}
 
 @app.route("/dashboard")
 def dashboard():

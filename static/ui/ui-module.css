@@ -1,0 +1,234 @@
+/* ═══════════════ FRIDAY UI MODULE — lives in every interface ═══════════════
+   Floating menubar pill + full-screen interface gallery.
+   Theme-agnostic (works on dark AND light UIs). */
+
+#fridayUiModule { position: fixed; z-index: 2147483000; font-family: 'Inter', -apple-system, system-ui, sans-serif; }
+
+/* ── Floating menubar pill ── */
+#fridayUiDock {
+  position: fixed; left: 50%; transform: translateX(-50%);
+  bottom: 40px; height: 46px;
+  display: flex; align-items: center; gap: 6px;
+  padding: 0 14px;
+  background: rgba(11,22,37,0.85);
+  border: 1px solid rgba(90,170,255,0.25);
+  border-radius: 16px;
+  backdrop-filter: blur(18px) saturate(160%);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.45);
+  color: #E8F1FB;
+  font-size: 13px; font-weight: 600;
+  letter-spacing: 0.4px;
+  cursor: pointer;
+  user-select: none;
+  transition: transform 0.2s, background 0.2s;
+  -webkit-app-region: no-drag;
+}
+#fridayUiDock:hover { transform: translateX(-50%) scale(1.04); }
+#fridayUiDock:active { transform: translateX(-50%) scale(0.97); }
+#fridayUiDock .fud-ic {
+  width: 26px; height: 26px; border-radius: 8px;
+  background: linear-gradient(135deg, #45D9FF, #69FFA8);
+  display: flex; align-items: center; justify-content: center;
+  color: #06111D; font-size: 13px; font-weight: 800;
+}
+#fridayUiDock .fud-name { padding: 0 4px; }
+#fridayUiDock .fud-chef {
+  display: inline-block; margin-left: 6px; padding: 2px 8px;
+  border-radius: 6px; font-size: 9px; letter-spacing: 1.2px;
+  background: rgba(69,217,255,0.15); color: #45D9FF; border: 1px solid rgba(69,217,255,0.3);
+}
+
+/* ── Full-screen gallery overlay ── */
+#fridayUiOverlay {
+  position: fixed; inset: 0;
+  background: rgba(6,17,29,0.72);
+  backdrop-filter: blur(14px);
+  display: none; flex-direction: column;
+  z-index: 2147483010;
+  opacity: 0; transition: opacity 0.25s;
+}
+#fridayUiOverlay.open { display: flex; opacity: 1; }
+
+#fridayUiGallery {
+  width: min(980px, 94vw);
+  margin: auto;
+  max-height: 86vh;
+  background: #0B1625;
+  border: 1px solid rgba(90,170,255,0.2);
+  border-radius: 22px;
+  box-shadow: 0 30px 90px rgba(0,0,0,0.6);
+  overflow: hidden;
+  display: flex; flex-direction: column;
+  transform: translateY(10px); transition: transform 0.25s;
+}
+#fridayUiOverlay.open #fridayUiGallery { transform: translateY(0); }
+
+#fridayUiGalleryHead {
+  padding: 20px 24px;
+  border-bottom: 1px solid rgba(90,170,255,0.15);
+  display: flex; align-items: center; justify-content: space-between;
+}
+#fridayUiGalleryHead .fuh-title { font-size: 16px; font-weight: 700; color: #E8F1FB; letter-spacing: 0.5px; }
+#fridayUiGalleryHead .fuh-sub { font-size: 11px; color: #8CA3BF; margin-top: 2px; }
+#fridayUiClose {
+  width: 34px; height: 34px; border-radius: 10px;
+  background: rgba(255,255,255,0.04); border: 1px solid rgba(90,170,255,0.2);
+  color: #8CA3BF; font-size: 15px; cursor: pointer;
+  transition: all 0.2s;
+}
+#fridayUiClose:hover { color: #E8F1FB; border-color: rgba(90,170,255,0.4); }
+
+#fridayUiGrid {
+  padding: 20px 24px;
+  overflow-y: auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+/* ── UI card with thumbnail ── */
+.fui-card {
+  background: #111F31;
+  border: 1px solid rgba(90,170,255,0.15);
+  border-radius: 16px;
+  overflow: hidden;
+  display: flex; flex-direction: column;
+  transition: transform 0.2s, border-color 0.2s;
+}
+.fui-card:hover { transform: translateY(-3px); border-color: rgba(90,170,255,0.4); }
+.fui-card.active { border-color: #69FFA8; box-shadow: inset 0 0 0 1px rgba(105,255,168,0.3); }
+
+.fui-thumb {
+  position: relative; height: 150px;
+  background: #0B1625;
+  display: flex; align-items: center; justify-content: center;
+  overflow: hidden;
+  cursor: pointer;
+  border-bottom: 1px solid rgba(90,170,255,0.12);
+}
+.fui-thumb img { width: 100%; height: 100%; object-fit: cover; object-position: top; }
+.fui-thumb .fui-ph {
+  font-size: 40px; color: rgba(69,217,255,0.5);
+}
+.fui-thumb .fui-hover {
+  position: absolute; inset: 0;
+  background: rgba(6,17,29,0.55);
+  backdrop-filter: blur(3px);
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  opacity: 0; transition: opacity 0.2s;
+}
+.fui-thumb:hover .fui-hover { opacity: 1; }
+.fui-hover .fui-eyebtn {
+  padding: 8px 18px; border-radius: 10px;
+  background: rgba(69,217,255,0.2); border: 1px solid rgba(69,217,255,0.5);
+  color: #45D9FF; font-size: 12px; font-weight: 600; cursor: pointer;
+  transition: all 0.2s;
+}
+.fui-hover .fui-eyebtn:hover { background: rgba(69,217,255,0.35); }
+.fui-tag {
+  position: absolute; top: 10px; left: 10px;
+  padding: 3px 10px; border-radius: 6px;
+  font-size: 9px; letter-spacing: 1.2px; text-transform: uppercase;
+  background: rgba(11,22,37,0.8); border: 1px solid rgba(90,170,255,0.25);
+  color: #8CA3BF; backdrop-filter: blur(6px);
+}
+.fui-tag.current { color: #45D9FF; border-color: rgba(69,217,255,0.4); }
+.fui-tag.legacy { color: #FFC857; border-color: rgba(255,200,87,0.35); }
+.fui-tag.active {
+  color: #69FFA8; border-color: rgba(105,255,168,0.5);
+  background: rgba(105,255,168,0.15);
+}
+
+.fui-body { padding: 14px 16px; display: flex; flex-direction: column; gap: 6px; flex: 1; }
+.fui-name { display: flex; align-items: baseline; gap: 8px; }
+.fui-name b { font-size: 14px; font-weight: 600; color: #E8F1FB; }
+.fui-name em { font-style: normal; font-size: 11px; color: #5B718C; }
+.fui-desc { font-size: 11.5px; color: #8CA3BF; line-height: 1.5; flex: 1; }
+.fui-acts { display: flex; gap: 8px; margin-top: 8px; }
+.fui-btn {
+  flex: 1; padding: 9px 0; border-radius: 10px;
+  font-size: 12px; font-weight: 600; cursor: pointer;
+  transition: all 0.2s;
+}
+.fui-btn.preview { background: rgba(255,255,255,0.04); border: 1px solid rgba(90,170,255,0.25); color: #E8F1FB; }
+.fui-btn.preview:hover { background: rgba(255,255,255,0.08); }
+.fui-btn.switch { background: rgba(69,217,255,0.18); border: 1px solid rgba(69,217,255,0.4); color: #45D9FF; }
+.fui-btn.switch:hover { background: rgba(69,217,255,0.3); }
+.fui-btn.active { background: rgba(105,255,168,0.15); border-color: rgba(105,255,168,0.4); color: #69FFA8; cursor: default; }
+
+/* ── Add-new slot ── */
+.fui-add {
+  background: rgba(69,217,255,0.05);
+  border: 1.5px dashed rgba(69,217,255,0.35);
+  border-radius: 16px;
+  min-height: 240px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 10px; cursor: pointer;
+  transition: all 0.2s;
+  color: #45D9FF;
+}
+.fui-add:hover { background: rgba(69,217,255,0.12); border-color: rgba(69,217,255,0.6); }
+.fui-add .fa-plus { font-size: 34px; font-weight: 200; }
+.fui-add .fa-label { font-size: 13px; font-weight: 600; }
+.fui-add .fa-sub { font-size: 11px; color: #5B718C; }
+
+/* ── Preview modal ── */
+#fridayUiPreview {
+  position: fixed; inset: 0; z-index: 2147483020;
+  background: rgba(6,17,29,0.88);
+  backdrop-filter: blur(16px);
+  display: none; flex-direction: column;
+}
+#fridayUiPreview.open { display: flex; }
+#fridayUiPrevHead {
+  height: 54px; display: flex; align-items: center; justify-content: space-between;
+  padding: 0 20px;
+  background: #0B1625; border-bottom: 1px solid rgba(90,170,255,0.15);
+  color: #E8F1FB; font-size: 13px; font-weight: 600;
+}
+#fridayUiPrevHead .fupb { display: flex; gap: 8px; }
+#fridayUiPrevHead .fup-btn {
+  padding: 7px 16px; border-radius: 9px; font-size: 12px; font-weight: 600; cursor: pointer;
+  background: rgba(255,255,255,0.04); border: 1px solid rgba(90,170,255,0.25); color: #E8F1FB;
+  transition: all 0.2s;
+}
+#fridayUiPrevHead .fup-btn.switch { background: rgba(69,217,255,0.18); border-color: rgba(69,217,255,0.4); color: #45D9FF; }
+#fridayUiPrevHead .fup-btn.switch:hover { background: rgba(69,217,255,0.3); }
+#fridayUiPrevFrame { flex: 1; border: none; background: #0B1625; width: 100%; }
+
+/* ── Create form modal ── */
+#fridayUiCreate {
+  position: fixed; inset: 0; z-index: 2147483030;
+  background: rgba(6,17,29,0.75);
+  backdrop-filter: blur(12px);
+  display: none; align-items: center; justify-content: center;
+}
+#fridayUiCreate.open { display: flex; }
+#fridayUiCreateBox {
+  width: 460px; max-width: 92vw;
+  background: #111F31; border: 1px solid rgba(90,170,255,0.25);
+  border-radius: 18px; padding: 22px;
+  color: #E8F1FB;
+}
+#fridayUiCreateBox h3 { font-size: 15px; margin-bottom: 4px; }
+#fridayUiCreateBox .fuc-sub { font-size: 11.5px; color: #8CA3BF; margin-bottom: 16px; }
+.fuc-field { margin-bottom: 12px; }
+.fuc-field label { display: block; font-size: 10px; letter-spacing: 1.2px; color: #8CA3BF; margin-bottom: 6px; }
+.fuc-field input, .fuc-field select, .fuc-field textarea {
+  width: 100%; padding: 10px 12px;
+  background: #0B1625; border: 1px solid rgba(90,170,255,0.2);
+  border-radius: 10px; color: #E8F1FB; font-size: 13px; font-family: inherit; outline: none;
+}
+.fuc-field input:focus, .fuc-field select:focus, .fuc-field textarea:focus { border-color: #45D9FF; }
+.fuc-field textarea { min-height: 60px; resize: vertical; }
+.fuc-field select option { background: #111F31; }
+.fuc-acts { display: flex; gap: 8px; margin-top: 16px; }
+.fuc-btn {
+  flex: 1; padding: 11px 0; border-radius: 10px; font-size: 13px; font-weight: 600; cursor: pointer;
+  transition: all 0.2s;
+}
+.fuc-btn.cancel { background: rgba(255,255,255,0.04); border: 1px solid rgba(90,170,255,0.2); color: #8CA3BF; }
+.fuc-btn.create { background: rgba(69,217,255,0.2); border: 1px solid rgba(69,217,255,0.45); color: #45D9FF; }
+.fuc-btn.create:hover { background: rgba(69,217,255,0.32); }
+#fridayUiCreateMsg { margin-top: 10px; font-size: 12px; color: #69FFA8; min-height: 16px; }
+#fridayUiCreateMsg.err { color: #FF6262; }
