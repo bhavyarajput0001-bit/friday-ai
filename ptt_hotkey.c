@@ -1,12 +1,10 @@
 /*
- * FRIDAY Wispr-Flow hotkey helper (macOS).
+ * FRIDAY Push-to-Talk hotkey helper (macOS).
  *
  * Registers a global hotkey for Right-Option + Space.
- *
- * Behavior (Wispr-Flow style):
- *   App closed (server unreachable) + press   -> launch the FRIDAY app
- *   App running  + press                      -> POST /api/voice/ptt start (hold to talk)
- *   Release                                     -> POST /api/voice/ptt stop (transcribe + process)
+ *   App running + press    -> POST /api/voice/ptt start (hold to talk)
+ *   Release                -> POST /api/voice/ptt stop (transcribe + process)
+ *   App closed + press     -> does nothing (app only starts when you open it)
  *
  * Uses Carbon RegisterEventHotKey — works system-wide without accessibility
  * permission. Build: clang -framework Carbon -o ptt_hotkey ptt_hotkey.c
@@ -20,7 +18,6 @@
 
 #define SERVER_URL  "http://127.0.0.1:5050/api/voice/ptt"
 #define HEALTH_URL  "http://127.0.0.1:5050/api/health"
-#define APP_PATH    "/Applications/FridayAI.app"
 
 static EventHotKeyRef gHotKey = NULL;
 static int gListening = 0;   /* whether current press started listening */
@@ -49,13 +46,6 @@ static int server_running(void) {
     return strncmp(buf, "200", 3) == 0;
 }
 
-/* Launch the FRIDAY app (the OS handles single-instance focus). */
-static void launch_app(void) {
-    char cmd[512];
-    snprintf(cmd, sizeof(cmd), "open %s >/dev/null 2>&1 &", APP_PATH);
-    (void)system(cmd);
-}
-
 static OSStatus hotkey_handler(EventHandlerCallRef next, EventRef event, void *userData) {
     UInt32 kind = GetEventKind(event);
     if (kind == kEventHotKeyPressed) {
@@ -63,8 +53,8 @@ static OSStatus hotkey_handler(EventHandlerCallRef next, EventRef event, void *u
             gListening = 1;
             post_action("start");
         } else {
+            /* App closed — do nothing. FRIDAY only starts when the user opens it. */
             gListening = 0;
-            launch_app();
         }
     } else if (kind == kEventHotKeyReleased) {
         if (gListening) {
@@ -102,7 +92,7 @@ int main(int argc, const char *argv[]) {
         return 1;
     }
 
-    fprintf(stdout, "FRIDAY: press Right-Option + Space (launch or talk)\n");
+    fprintf(stdout, "FRIDAY: press Right-Option + Space to talk (app must be open)\n");
     fflush(stdout);
 
     CFRunLoopRun();   /* pump the Carbon event loop */
